@@ -24,10 +24,14 @@ Pytest plotting tests depend on user input!!!
 This is considered bad practice except for single user/single maintainer
 projects. For this to work, pytest must be run with the -s option.
 
-Example: `$ pytest -s tests/
+Example: `$ pytest -s tests/`
 
 So that the test data is found, run the tests from the root of the clone
 of the GitHub repo.
+
+## Documentation
+
+See: [grscheller-courses-distributions](https://grscheller.github.io/courses-distributions)
 
 ## License Summary
 
