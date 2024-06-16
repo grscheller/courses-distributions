@@ -16,6 +16,8 @@
 # Udacity® (https://www.udacity.com/)
 #
 
+"""Module for base class of classes representing probability distributions"""
+
 from __future__ import annotations
 
 from typing import List
@@ -26,10 +28,11 @@ __all__ = ['Distribution']
 class Distribution():
     """Base Class for calculating and visualizing probability distributions."""
 
-    def __init__(self, mu: float=0.0, sigma: float=1.0):
-        self.sample = True
-        self.mean = mu
-        self.stdev = sigma
+    def __init__(self, mean: float=0.0, stdev: float=1.0):
+        self.sample = False
+        #: Assigned value for mean.
+        self.mean = mean
+        self.stdev = stdev             #: Assigned value of stdev
         self.data: List[float] = []
 
     def read_data_file(self, file_name: str, sample: bool=True) -> None:
@@ -37,6 +40,7 @@ class Distribution():
         one number (float) per line. The numbers are stored in the data attribute.
         After reading in the file, the mean and standard deviation are calculated.
         """
+        self.sample = sample
 
         # Read in the data from the file given
         data_list: List[float] = []
@@ -48,10 +52,11 @@ class Distribution():
 
         # Update Gaussian object
         self.data = data_list
+        self.calculate_stdev(sample)
 
     def calculate_mean(self) -> float:
         """From the data set, calculate & return the mean."""
-
+        # TODO: Make private (after course is over)
         mu = self.mean
         n = len(self.data)
         if n > 0:
@@ -67,7 +72,8 @@ class Distribution():
         * If sample is False, calculate a population standard deviation. 
 
         """
-
+        # TODO: Remove sample parameter (after course is over)
+        # TODO: Make private (after course is over)
         n = len(self.data)
         mu = self.calculate_mean()
 

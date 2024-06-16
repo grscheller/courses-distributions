@@ -52,16 +52,35 @@ from __future__ import annotations
 from typing import List, Tuple
 import math
 import matplotlib.pyplot as plt
-from grscheller_courses_distributions.distribution import Distribution
+from .distribution import Distribution
 
 __all__ = [&#39;Gaussian&#39;]
 
 class Gaussian(Distribution):
-    &#34;&#34;&#34; Class for calculating and visualizing Gaussian distributions.&#34;&#34;&#34;
+    &#34;&#34;&#34; Class for calculating and visualizing Gaussian distributions.
+
+    The Gaussian, also called Normal, distribution is a continuous probability
+    distribution with probability density function
+    ```
+       f(x) = (1/√(2πσ²))exp(-(x-μ)²/2σ²)
+    ```
+    where
+
+    * μ = mean value of the distribution
+    * σ = standard deviation of the distribution
+
+    Attributes:
+
+    * mu = μ = mean value (given or based on data)
+    * sigma = σ = standard deviation (given or based on data)
+    &#34;&#34;&#34;
 
     def __init__(self, mu: float=0.0, sigma: float=1.0):
         super().__init__(mu, sigma)
-        self.c = 1.0 / math.sqrt(2*math.pi)
+        #: mean
+        self.mu = mu
+        self.sigma = sigma #: standard deviation
+        self._c = 1.0 / math.sqrt(2*math.pi)
 
     def calculate_mean(self) -&gt; float:
         &#34;&#34;&#34;From the data set, calculate &amp; return the mean.&#34;&#34;&#34;
@@ -129,7 +148,7 @@ class Gaussian(Distribution):
 
         exp = math.exp
         sqrt = math.sqrt
-        c = self.c
+        c = self._c
 
         mu = self.mean
         sigma = self.stdev
@@ -225,17 +244,50 @@ class Gaussian(Distribution):
 <span>(</span><span>mu: float = 0.0, sigma: float = 1.0)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Class for calculating and visualizing Gaussian distributions.</p></div>
+<div class="desc"><p>Class for calculating and visualizing Gaussian distributions.</p>
+<p>The Gaussian, also called Normal, distribution is a continuous probability
+distribution with probability density function</p>
+<pre><code>   f(x) = (1/√(2πσ²))exp(-(x-μ)²/2σ²)
+</code></pre>
+<p>where</p>
+<ul>
+<li>μ = mean value of the distribution</li>
+<li>σ = standard deviation of the distribution</li>
+</ul>
+<p>Attributes:</p>
+<ul>
+<li>mu = μ = mean value (given or based on data)</li>
+<li>sigma = σ = standard deviation (given or based on data)</li>
+</ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Gaussian(Distribution):
-    &#34;&#34;&#34; Class for calculating and visualizing Gaussian distributions.&#34;&#34;&#34;
+    &#34;&#34;&#34; Class for calculating and visualizing Gaussian distributions.
+
+    The Gaussian, also called Normal, distribution is a continuous probability
+    distribution with probability density function
+    ```
+       f(x) = (1/√(2πσ²))exp(-(x-μ)²/2σ²)
+    ```
+    where
+
+    * μ = mean value of the distribution
+    * σ = standard deviation of the distribution
+
+    Attributes:
+
+    * mu = μ = mean value (given or based on data)
+    * sigma = σ = standard deviation (given or based on data)
+    &#34;&#34;&#34;
 
     def __init__(self, mu: float=0.0, sigma: float=1.0):
         super().__init__(mu, sigma)
-        self.c = 1.0 / math.sqrt(2*math.pi)
+        #: mean
+        self.mu = mu
+        self.sigma = sigma #: standard deviation
+        self._c = 1.0 / math.sqrt(2*math.pi)
 
     def calculate_mean(self) -&gt; float:
         &#34;&#34;&#34;From the data set, calculate &amp; return the mean.&#34;&#34;&#34;
@@ -303,7 +355,7 @@ class Gaussian(Distribution):
 
         exp = math.exp
         sqrt = math.sqrt
-        c = self.c
+        c = self._c
 
         mu = self.mean
         sigma = self.stdev
@@ -388,6 +440,17 @@ class Gaussian(Distribution):
 <ul class="hlist">
 <li><a title="grscheller_courses_distributions.distribution.Distribution" href="distribution.html#grscheller_courses_distributions.distribution.Distribution">Distribution</a></li>
 </ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="grscheller_courses_distributions.gaussian.Gaussian.mu"><code class="name">var <span class="ident">mu</span></code></dt>
+<dd>
+<div class="desc"><p>mean</p></div>
+</dd>
+<dt id="grscheller_courses_distributions.gaussian.Gaussian.sigma"><code class="name">var <span class="ident">sigma</span></code></dt>
+<dd>
+<div class="desc"><p>standard deviation</p></div>
+</dd>
+</dl>
 <h3>Methods</h3>
 <dl>
 <dt id="grscheller_courses_distributions.gaussian.Gaussian.calculate_stdev"><code class="name flex">
@@ -440,7 +503,7 @@ class Gaussian(Distribution):
 
     exp = math.exp
     sqrt = math.sqrt
-    c = self.c
+    c = self._c
 
     mu = self.mean
     sigma = self.stdev
@@ -539,7 +602,9 @@ probability density function along the same range</p>
 <li><code><b><a title="grscheller_courses_distributions.distribution.Distribution" href="distribution.html#grscheller_courses_distributions.distribution.Distribution">Distribution</a></b></code>:
 <ul class="hlist">
 <li><code><a title="grscheller_courses_distributions.distribution.Distribution.calculate_mean" href="distribution.html#grscheller_courses_distributions.distribution.Distribution.calculate_mean">calculate_mean</a></code></li>
+<li><code><a title="grscheller_courses_distributions.distribution.Distribution.mean" href="distribution.html#grscheller_courses_distributions.distribution.Distribution.mean">mean</a></code></li>
 <li><code><a title="grscheller_courses_distributions.distribution.Distribution.read_data_file" href="distribution.html#grscheller_courses_distributions.distribution.Distribution.read_data_file">read_data_file</a></code></li>
+<li><code><a title="grscheller_courses_distributions.distribution.Distribution.stdev" href="distribution.html#grscheller_courses_distributions.distribution.Distribution.stdev">stdev</a></code></li>
 </ul>
 </li>
 </ul>
@@ -562,11 +627,13 @@ probability density function along the same range</p>
 <ul>
 <li>
 <h4><code><a title="grscheller_courses_distributions.gaussian.Gaussian" href="#grscheller_courses_distributions.gaussian.Gaussian">Gaussian</a></code></h4>
-<ul class="">
+<ul class="two-column">
 <li><code><a title="grscheller_courses_distributions.gaussian.Gaussian.calculate_stdev" href="#grscheller_courses_distributions.gaussian.Gaussian.calculate_stdev">calculate_stdev</a></code></li>
+<li><code><a title="grscheller_courses_distributions.gaussian.Gaussian.mu" href="#grscheller_courses_distributions.gaussian.Gaussian.mu">mu</a></code></li>
 <li><code><a title="grscheller_courses_distributions.gaussian.Gaussian.pdf" href="#grscheller_courses_distributions.gaussian.Gaussian.pdf">pdf</a></code></li>
 <li><code><a title="grscheller_courses_distributions.gaussian.Gaussian.plot_histogram" href="#grscheller_courses_distributions.gaussian.Gaussian.plot_histogram">plot_histogram</a></code></li>
 <li><code><a title="grscheller_courses_distributions.gaussian.Gaussian.plot_histogram_pdf" href="#grscheller_courses_distributions.gaussian.Gaussian.plot_histogram_pdf">plot_histogram_pdf</a></code></li>
+<li><code><a title="grscheller_courses_distributions.gaussian.Gaussian.sigma" href="#grscheller_courses_distributions.gaussian.Gaussian.sigma">sigma</a></code></li>
 </ul>
 </li>
 </ul>

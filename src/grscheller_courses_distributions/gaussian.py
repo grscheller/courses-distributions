@@ -23,67 +23,35 @@ from __future__ import annotations
 from typing import List, Tuple
 import math
 import matplotlib.pyplot as plt
-from grscheller_courses_distributions.distribution import Distribution
+from .distribution import Distribution
 
 __all__ = ['Gaussian']
 
 class Gaussian(Distribution):
-    """ Class for calculating and visualizing Gaussian distributions."""
+    """ Class for calculating and visualizing Gaussian distributions.
+
+    The Gaussian, also called Normal, distribution is a continuous probability
+    distribution with probability density function
+    ```
+       f(x) = (1/√(2πσ²))exp(-(x-μ)²/2σ²)
+    ```
+    where
+
+    * μ = mean value of the distribution
+    * σ = standard deviation of the distribution
+
+    Attributes:
+
+    * mu = μ = mean value (given or based on data)
+    * sigma = σ = standard deviation (given or based on data)
+    """
 
     def __init__(self, mu: float=0.0, sigma: float=1.0):
         super().__init__(mu, sigma)
-        self.c = 1.0 / math.sqrt(2*math.pi)
-
-    def calculate_mean(self) -> float:
-        """From the data set, calculate & return the mean."""
-
-        mu = self.mean
-        n = len(self.data)
-        if n > 0:
-            mu = sum(self.data)/n
-            self.mean = mu
-
-        return mu
-
-    def calculate_stdev(self, sample: bool=True) -> float:
-        """Set & return a standard deviation calculated from the data set.
-
-        * If sample is True, calculate a sample standard deviation.
-        * If sample is False, calculate a population standard deviation.
-
-        """
-
-        n = len(self.data)
-        mu = self.calculate_mean()
-
-        if sample:
-            # sample standard deviation
-            if n > 1:
-                self.stdev = math.sqrt(sum(((x - mu)**2 for x in self.data))/(n-1))
-        else:
-            # population standard deviation
-            if n > 0:
-                self.stdev = math.sqrt(sum(((x - mu)**2 for x in self.data))/n)
-
-        return self.stdev
-
-    def read_data_file(self, file_name: str, sample: bool=True) -> None:
-        """Method to read in data from a text file. The text file should have
-        one number (float) per line. The numbers are stored in the data attribute.
-        After reading in the file, the mean and standard deviation are calculated.
-        """
-
-        # Read in the data from the file given
-        data_list: List[float] = []
-        with open(file_name) as file:
-            line = file.readline()
-            while line:
-                data_list.append(int(line))
-                line = file.readline()
-
-        # Update Gaussian object
-        self.data = data_list
-        self.calculate_stdev(sample)
+        #: mean
+        self.mu = mu
+        self.sigma = sigma #: standard deviation
+        self._c = 1.0 / math.sqrt(2*math.pi)
 
     def plot_histogram(self) -> None:
         """Produce a histogram of the data using the matplotlib pyplot library."""
@@ -100,7 +68,7 @@ class Gaussian(Distribution):
 
         exp = math.exp
         sqrt = math.sqrt
-        c = self.c
+        c = self._c
 
         mu = self.mean
         sigma = self.stdev
