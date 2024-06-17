@@ -53,7 +53,7 @@ class Binomial(Distribution):
 
     #
 
-    def __init__(self, prob=.5, size=20):
+    def __init__(self, prob: float=.5, size: int=20):
 
         # TODO: store the probability of the distribution in an instance variable p
         # TODO: store the size of the distribution in an instance variable n

@@ -20,7 +20,7 @@
 
 from __future__ import annotations
 
-from typing import List
+from typing import Optional
 import math
 
 __all__ = ['Distribution']
@@ -28,12 +28,11 @@ __all__ = ['Distribution']
 class Distribution():
     """Base Class for calculating and visualizing probability distributions."""
 
-    def __init__(self, mean: float=0.0, stdev: float=1.0):
-        self.sample = False
-        #: Assigned value for mean.
-        self.mean = mean
-        self.stdev = stdev             #: Assigned value of stdev
-        self.data: List[float] = []
+    def __init__(self) -> None:
+        self.sample = False                #: data is a sample or the population
+        self.data_mean: float|None = None  #: mean of data
+        self.data_stdev: float|None = None #: population/sample standard deviation
+        self.data: list[float] = []        #: data (sample or population)
 
     def read_data_file(self, file_name: str, sample: bool=True) -> None:
         """Method to read in data from a text file. The text file should have
@@ -43,47 +42,58 @@ class Distribution():
         self.sample = sample
 
         # Read in the data from the file given
-        data_list: List[float] = []
+        data_list: list[float] = []
         with open(file_name) as file:
             line = file.readline()
             while line:
                 data_list.append(int(line))
                 line = file.readline()
 
-        # Update Gaussian object
         self.data = data_list
-        self.calculate_stdev(sample)
+        self.calc_data_stats(sample)
 
-    def calculate_mean(self) -> float:
-        """From the data set, calculate & return the mean."""
-        # TODO: Make private (after course is over)
-        mu = self.mean
+    def calc_data_stats(self, sample: bool) -> None:
+        """Calculate data statistics (mean/stdev for now)"""
+        self.sample = sample
+        self.calculate_data_stdev(sample)
+        # TODO: add other statistics?
+
+    def calculate_data_mean(self) -> float|None:
+        """From the data set, calculate & return the mean if it exists."""
         n = len(self.data)
         if n > 0:
-            mu = sum(self.data)/n
-            self.mean = mu
+            self.data_mean = sum(self.data)/n
+        else:
+            self.data_mean = None
 
-        return mu
+        return self.data_mean
 
-    def calculate_stdev(self, sample: bool=True) -> float:
-        """Set & return a standard deviation calculated from the data set.
+    def calculate_data_stdev(self, sample: bool=True) -> float|None:
+        """From the data set, calculate & return the stdev if it exists.
 
         * If sample is True, calculate a sample standard deviation. 
         * If sample is False, calculate a population standard deviation. 
 
         """
-        # TODO: Remove sample parameter (after course is over)
-        # TODO: Make private (after course is over)
+        # NOTE: Retaining sample parameter to keep consistent with course's API,
+        #       otherwise I don't need it and could do things more cleanly.
+        self.sample = sample
+        mu = self.calculate_data_mean()
         n = len(self.data)
-        mu = self.calculate_mean()
 
-        if sample:
+        if self.sample:
             # sample standard deviation
             if n > 1:
-                self.stdev = math.sqrt(sum(((x - mu)**2 for x in self.data))/(n-1))
+                assert mu is not None
+                self.data_stdev = math.sqrt(sum(((x - mu)**2 for x in self.data))/(n-1))
+            else:
+                self.data_stdev = None
         else:
             # population standard deviation
             if n > 0:
-                self.stdev = math.sqrt(sum(((x - mu)**2 for x in self.data))/n)
+                assert mu is not None
+                self.data_stdev = math.sqrt(sum(((x - mu)**2 for x in self.data))/n)
+            else:
+                self.data_stdev = None
 
-        return self.stdev
+        return self.data_stdev

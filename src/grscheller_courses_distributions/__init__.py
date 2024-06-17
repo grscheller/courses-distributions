@@ -13,13 +13,14 @@
 # limitations under the License.
 
 """Module of classes representing various probability distributions
-   - based on sample or population data
+   - distributions can be compared to either sample or population data
    - derived from Udacity exercises
 """
 
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 __author__ = "Geoffrey R. Scheller"
 __copyright__ = "Copyright (c) 2024 Geoffrey R. Scheller"
 __license__ = "Apache License 2.0"
 
 from .gaussian import Gaussian
+from .binomial import Binomial

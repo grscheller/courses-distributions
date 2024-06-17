@@ -47,11 +47,9 @@ class Gaussian(Distribution):
     """
 
     def __init__(self, mu: float=0.0, sigma: float=1.0):
-        super().__init__(mu, sigma)
-        #: mean
-        self.mu = mu
-        self.sigma = sigma #: standard deviation
-        self._c = 1.0 / math.sqrt(2*math.pi)
+        super().__init__()
+        self.mu = mu        #: pop mean of Gaussian distribution
+        self.sigma = sigma  #: pop standard deviation of Gaussian distribution
 
     def plot_histogram(self) -> None:
         """Produce a histogram of the data using the matplotlib pyplot library."""
@@ -63,15 +61,14 @@ class Gaussian(Distribution):
         axis.set_ylabel('Count')
         plt.show()
 
-    def pdf(self, x: float):
+    def pdf(self, x: float) -> float:
         """Gaussian probability density function for this Gaussian object."""
-
         exp = math.exp
         sqrt = math.sqrt
-        c = self._c
+        c = 1.0/sqrt(2*math.pi)
 
-        mu = self.mean
-        sigma = self.stdev
+        mu = self.mu
+        sigma = self.sigma
 
         return (c/sigma)*exp(-0.5*((x - mu)/sigma)**2)
 
