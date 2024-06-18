@@ -21,14 +21,14 @@
 from __future__ import annotations
 
 from typing import List, Tuple
-import math
+from math import exp, pi, sqrt
 import matplotlib.pyplot as plt
 from .distribution import Distribution
 
 __all__ = ['Gaussian']
 
 class Gaussian(Distribution):
-    """ Class for calculating and visualizing Gaussian distributions.
+    """ Class for visualizing data as Gaussian distributions.
 
     The Gaussian, also called Normal, distribution is a continuous probability
     distribution with probability density function
@@ -37,19 +37,23 @@ class Gaussian(Distribution):
     ```
     where
 
-    * μ = mean value of the distribution
-    * σ = standard deviation of the distribution
+    * μ = mu = mean value of the distribution
+    * σ = sigma = standard deviation of the distribution
 
-    Attributes:
-
-    * mu = μ = mean value (given or based on data)
-    * sigma = σ = standard deviation (given or based on data)
     """
-
     def __init__(self, mu: float=0.0, sigma: float=1.0):
+        if sigma <= 0:
+            msg = 'For a Gaussian distribution, sigma must be greater than 0'
+            raise ValueError(msg)
         super().__init__(mu, sigma)
-        self.mu: float|None = mu        #: mean of the Gaussian distribution
-        self.sigma: float|None = sigma  #: standard deviation of the Gaussian distribution
+
+    def calculate_mean(self) -> float:
+        """Calculate the mean from the data set"""
+        return self.calculate_data_mean()
+
+    def calculate_stdev(self, sample: bool = True) -> float:
+        """Calculate the stdev from the data set"""
+        return self.calculate_data_stdev(sample)
 
     def read_data_file(self, file_name: str, sample: bool=True) -> None:
         super().read_data_file(file_name, sample)
@@ -68,12 +72,10 @@ class Gaussian(Distribution):
 
     def pdf(self, x: float) -> float:
         """Gaussian probability density function for this Gaussian object."""
-        exp = math.exp
-        sqrt = math.sqrt
-        c = 1.0/sqrt(2*math.pi)
+        c = 1.0/sqrt(2*pi)
 
-        mu = self.mu
-        sigma = self.sigma
+        mu = self.mean
+        sigma = self.stdev
 
         return (c/sigma)*exp(-0.5*((x - mu)/sigma)**2)
 
@@ -120,7 +122,7 @@ class Gaussian(Distribution):
         return xs, ys
 
     def __add__(self, other: Gaussian) -> Gaussian:
-        """Magic method to add together two Gaussian distributions
+        """D method to add together two Gaussian distributions
 
         Args:
             other (Gaussian): Gaussian instance
@@ -129,14 +131,7 @@ class Gaussian(Distribution):
             Gaussian: Gaussian distribution
 
         """
-        # create a new Gaussian object
-        result = Gaussian()
-
-        # Calculate the mean and standard deviation of the sum of two Gaussians
-        result.mean = self.mean + other.mean
-        result.stdev = math.sqrt(self.stdev**2 + other.stdev**2)
-
-        return result
+        return Gaussian(self.mean + other.mean, sqrt(self.stdev**2 + other.stdev**2))
 
     def __repr__(self) -> str:
         """Magic method to output the characteristics of the Gaussian instance

@@ -21,14 +21,17 @@
 from __future__ import annotations
 
 from typing import List, Tuple
-import math
+from math import ceil, floor, sqrt
 import matplotlib.pyplot as plt
 from .distribution import Distribution
 
 __all__ = ['Binomial']
 
 class Binomial(Distribution):
-    """ Class for calculating and visualizing Binomial distributions.
+    """ Class for visualizing data as binomial distributions.
+
+    The binomial distribution represents the number of events with probability
+    p happening in n numbers of trials.
 
     Attributes:
         mean (float) representing the mean value of the distribution
@@ -36,110 +39,55 @@ class Binomial(Distribution):
         data_list (list of floats) a list of floats to be extracted from the data file
         p (float) representing the probability of an event occurring
         n (int) the total number of trials
-
-
     """
+    def __init__(self, p: float=0.5, n: int=20):
+        if not (0.0 <= p <= 1.0) or n < 1:
+            msg1 = 'For a binomial distribution, '
+            msg2 = msg3 = ''
+            if not (0.0 <= p <= 1.0):
+                msg2 = '0 <= p <= 1'
+            if n < 1:
+                msg3 = 'the number of trials n must be at least 1'
+            if msg2 and msg3:
+                msg = msg1 + msg2 + ' and ' + msg3 + '.'
+            else:
+                msg = msg1 + msg2 + msg3 + '.'
+            raise ValueError(msg)
 
-    #       A binomial distribution is defined by two variables:
-    #           the probability of getting a positive outcome
-    #           the number of trials
+        self.p: float = p  #: probability of a success
+        self.n: int = n    #: number of events
+        super().__init__(self.calculate_mean(), self.calculate_stdev())
 
-    #       If you know these two values, you can calculate the mean and the standard deviation
-    #
-    #       For example, if you flip a fair coin 25 times, p = 0.5 and n = 25
-    #       You can then calculate the mean and standard deviation with the following formula:
-    #           mean = p * n
-    #           standard deviation = sqrt(n * p * (1 - p))
+    def calculate_mean(self) -> float:
+        """Calculate the mean from p and n"""
+        n = self.n
+        p = self.p
+        self.mean = mean = n*p
+        return mean
 
-    #
+    def calculate_stdev(self) -> float:
+        """Calculate the standard deviation using p and n"""
+        n = self.n
+        p = self.p
+        self.stdev = stdev = sqrt(n*p*(1-p))
+        return stdev
 
-    def __init__(self, prob: float=.5, size: int=20):
-
-        # TODO: store the probability of the distribution in an instance variable p
-        # TODO: store the size of the distribution in an instance variable n
-
-        # TODO: Now that you know p and n, you can calculate the mean and standard deviation
-        #       Use the calculate_mean() and calculate_stdev() methods to calculate the
-        #       distribution mean and standard deviation
-        #
-        #       Then use the init function from the Distribution class to initialize the
-        #       mean and the standard deviation of the distribution
-        #
-        #       Hint: You need to define the calculate_mean() and calculate_stdev() methods
-        #               farther down in the code starting in line 55.
-        #               The init function can get access to these methods via the self
-        #               variable.
-        pass
-
-    def calculate_mean(self):
-
-        """Function to calculate the mean from p and n
-
-        Args:
-            None
-
-        Returns:
-            float: mean of the data set
-
-        """
-
-        # TODO: calculate the mean of the Binomial distribution. Store the mean
-        #       via the self variable and also return the new mean value
-
-        pass
-
-
-
-    def calculate_stdev(self):
-
-        """Function to calculate the standard deviation from p and n.
-
-        Args:
-            None
-
-        Returns:
-            float: standard deviation of the data set
-
-        """
-
-        # TODO: calculate the standard deviation of the Binomial distribution. Store
-        #       the result in the self standard deviation attribute. Return the value
-        #       of the standard deviation.
-        pass
-
-
-
-    def replace_stats_with_data(self):
-
-        """Function to calculate p and n from the data set
-
-        Args:
-            None
-
-        Returns:
-            float: the p value
-            float: the n value
-
-        """
-
-        # TODO: The read_data_file() from the Generaldistribution class can read in a data
-        #       file. Because the Binomaildistribution class inherits from the Generaldistribution class,
-        #       you don't need to re-write this method. However,  the method
-        #       doesn't update the mean or standard deviation of
-        #       a distribution. Hence you are going to write a method that calculates n, p, mean and
-        #       standard deviation from a data set and then updates the n, p, mean and stdev attributes.
-        #       Assume that the data is a list of zeros and ones like [0 1 0 1 1 0 1].
-        #
-        #       Write code that:
-        #           updates the n attribute of the binomial distribution
-        #           updates the p value of the binomial distribution by calculating the
-        #               number of positive trials divided by the total trials
-        #           updates the mean attribute
-        #           updates the standard deviation attribute
-        #
-        #       Hint: You can use the calculate_mean() and calculate_stdev() methods
-        #           defined previously.
-        pass
+    def replace_stats_with_data(self) -> tuple[float, int]:
+        """Function to calculate p and n from the data set"""
+        if self.sample:
+            mean = self.mean
+            var = self.stdev ** 2
+            n_estimate = mean*mean/(mean - var)
+            n = int(n_estimate)
+            if n_estimate - n > 0.5:
+                n += 1
+            p = 1 - var/mean
+        else:
+            n = len(self.data)
+            p = sum(self.data)/n
+            self.mean = n*p
+            self.stdev = sqrt(n*p*(1-p))
+        return p, n
 
     def plot_bar(self):
         """Function to output a histogram of the instance variable data using

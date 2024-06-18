@@ -29,8 +29,6 @@ class Test_Gaussian:
         # assert gauss.stdev is None
         assert gauss.mean == 25
         assert gauss.stdev == 2
-        assert gauss.mu == 25
-        assert gauss.sigma == 2
 
     def test_pdf(self) -> None:
         assert round(gauss.pdf(25), 5) == 0.19947
