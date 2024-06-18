@@ -47,9 +47,14 @@ class Gaussian(Distribution):
     """
 
     def __init__(self, mu: float=0.0, sigma: float=1.0):
-        super().__init__()
-        self.mu = mu        #: pop mean of Gaussian distribution
-        self.sigma = sigma  #: pop standard deviation of Gaussian distribution
+        super().__init__(mu, sigma)
+        self.mu: float|None = mu        #: mean of the Gaussian distribution
+        self.sigma: float|None = sigma  #: standard deviation of the Gaussian distribution
+
+    def read_data_file(self, file_name: str, sample: bool=True) -> None:
+        super().read_data_file(file_name, sample)
+        self.mu = self.mean
+        self.sigma = self.stdev
 
     def plot_histogram(self) -> None:
         """Produce a histogram of the data using the matplotlib pyplot library."""

@@ -10,7 +10,6 @@
 # Example: $ pytest -s gaussian_test.py
 #
 
-import sys
 from grscheller_courses_distributions.gaussian import Gaussian
 
 gauss = Gaussian(25, 2)
@@ -24,8 +23,14 @@ def plot_viewable(plot_name: str) -> bool:
 class Test_Gaussian:
 
     def test_initialization(self) -> None: 
+        # TODO: Change after course is over. For the Gaussian class, the course
+        #       conflates the Gaussian statistics with the data statistics.
+        # assert gauss.mean is None
+        # assert gauss.stdev is None
         assert gauss.mean == 25
         assert gauss.stdev == 2
+        assert gauss.mu == 25
+        assert gauss.sigma == 2
 
     def test_pdf(self) -> None:
         assert round(gauss.pdf(25), 5) == 0.19947
