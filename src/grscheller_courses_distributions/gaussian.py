@@ -81,7 +81,7 @@ class Gaussian(Distribution):
         sigma = self.stdev
         return (c/sigma)*exp(-0.5*((x - mu)/sigma)**2)
 
-    def plot_histogram_pdf(self, n_spaces: int = 50) -> Tuple[List[float], List[float]]:
+    def plot_histogram_pdf(self, n_spaces: int = 100) -> Tuple[List[float], List[float]]:
         """Method to plot the normalized histogram of the data and a plot of the
         probability density function along the same range
 
@@ -89,37 +89,36 @@ class Gaussian(Distribution):
             n_spaces (int): number of data points
 
         Returns:
-            list: x values for the pdf plot
-            list: y values for the pdf plot
+            list: x values used for the pdf plot
+            list: y values used for the pdf plot
         """
-        min_xs = min(self.data)
-        max_xs = max(self.data)
+        data = self.data
+        pdf = self.pdf
 
-        # calculates the interval between x values
-        interval = 1.0 * (max_xs - min_xs) / n_spaces
+        if len(data) == 0:
+            return [], []
 
-        xs: List[float] = []
-        ys: List[float] = []
+        min_x, max_x = min(data), max(data)
+        if min_x == max_x:
+            min_x, max_x = min_x - 0.5, max_x + 0.5
+        interval = (max_x - min_x)/n_spaces
 
-        # calculate the x values to visualize
-        for i in range(n_spaces):
-            x = min_xs + interval*i
-            xs.append(x)
-            ys.append(self.pdf(x))
+        x: List[float] = list((min_x + interval*n for n in range(n_spaces + 1)))
+        y: List[float] = list((pdf(x) for x in x))
 
         # make the plots
         fig, axes = plt.subplots(2,sharex=True)
         fig.subplots_adjust(hspace=.5)
-        axes[0].hist(self.data, density=True)
+        axes[0].hist(data, density=True)
         axes[0].set_title('Normed Histogram of Data')
         axes[0].set_ylabel('Density')
 
-        axes[1].plot(xs, ys)
+        axes[1].plot(x, y)
         axes[1].set_title('Normal Distribution for \n Sample Mean and Sample Standard Deviation')
-        axes[0].set_ylabel('Density')
+        axes[1].set_ylabel('Density')
         plt.show()
 
-        return xs, ys
+        return x, y
 
     def __add__(self, other: Gaussian) -> Gaussian:
         """Add together two Gaussian distributions."""

@@ -94,11 +94,11 @@ class Binomial(Distribution):
             self.stdev = sqrt(n*p*(1-p))
         return self.p, self.n
 
-    def plot_bar(self) -> None:
+    def plot_histogram(self) -> None:
         """Produce a bar-graph of the data using the matplotlib pyplot library."""
         fig, axis = plt.subplots()
-        axis.bar(self.data)
-        axis.set_title('Bar Graph of Data')
+        axis.hist(self.data)
+        axis.set_title('Histogram of failures/successes')
         axis.set_xlabel('Data')
         axis.set_ylabel('Count')
         plt.show()
@@ -110,30 +110,33 @@ class Binomial(Distribution):
         p = self.p
         return comb(n, k)*(p**k)*(1 - p)**(n-k)
 
-    def plot_bar_pdf(self) -> Tuple[List[float], List[float]]:
+    def plot_histogram_pdf(self) -> Tuple[List[float], List[float]]:
         """Function to plot the pdf of the binomial distribution
 
         Returns:
-        * list: x values for the pdf plot
-        * list: y values for the pdf plot
+        * list: x values used for the pdf plot
+        * list: y values used for the pdf plot
         """
-        xs: List[float] = list(range(self.n + 1))
-        ys: List[float] = list((self.pdf(x) for x in xs))
+        data = self.data
+        pdf = self.pdf
+
+        x: List[float] = list(range(self.n + 1))
+        y: List[float] = list((pdf(x) for x in x))
 
         # make the plots
-        fig, axes = plt.subplots(2,sharex=True)
+        #fig, axes = plt.subplots(2,sharex=True)
+        fig, axes = plt.subplots(2)
         fig.subplots_adjust(hspace=.5)
-        axes[0].bar(self.data, density=True)
+        axes[0].hist(data, density=True)
         axes[0].set_title('Normed Histogram of Data')
         axes[0].set_ylabel('Density')
 
-        axes[1].plot(xs, ys)
-        axes[1].set_title('Normal Distribution for \n Sample Mean and Sample Standard Deviation')
-        axes[0].set_ylabel('Density')
+        axes[1].plot(x, y)
+        axes[1].set_title('Binomial Distribution for p and n')
+        axes[1].set_ylabel('Density')
         plt.show()
 
-        return xs, ys
-
+        return x, y
 
     def __add__(self, other: Binomial) -> Binomial:
         """Add together two Binomial distributions with equal p."""

@@ -50,14 +50,17 @@
 from __future__ import annotations
 
 from typing import List, Tuple
-import math
+from math import ceil, comb, floor, pow, sqrt
 import matplotlib.pyplot as plt
 from .distribution import Distribution
 
 __all__ = [&#39;Binomial&#39;]
 
 class Binomial(Distribution):
-    &#34;&#34;&#34; Class for calculating and visualizing Binomial distributions.
+    &#34;&#34;&#34; Class for visualizing data as binomial distributions.
+
+    The binomial distribution represents the number of events with probability
+    p happening in n numbers of trials.
 
     Attributes:
         mean (float) representing the mean value of the distribution
@@ -65,233 +68,128 @@ class Binomial(Distribution):
         data_list (list of floats) a list of floats to be extracted from the data file
         p (float) representing the probability of an event occurring
         n (int) the total number of trials
-
-
     &#34;&#34;&#34;
+    def __init__(self, p: float=0.5, n: int=20):
+        if not (0.0 &lt;= p &lt;= 1.0) or n &lt; 1:
+            msg1 = &#39;For a binomial distribution, &#39;
+            msg2 = msg3 = &#39;&#39;
+            if not (0.0 &lt;= p &lt;= 1.0):
+                msg2 = &#39;0 &lt;= p &lt;= 1&#39;
+            if n &lt; 0:
+                msg3 = &#39;the number of trials n must be non-negative&#39;
+            if msg2 and msg3:
+                msg = msg1 + msg2 + &#39; and &#39; + msg3 + &#39;.&#39;
+            else:
+                msg = msg1 + msg2 + msg3 + &#39;.&#39;
+            raise ValueError(msg)
 
-    #       A binomial distribution is defined by two variables:
-    #           the probability of getting a positive outcome
-    #           the number of trials
+        self.p: float = p  #: probability of a success
+        self.n: int = n    #: number of events
+        super().__init__(self.calculate_mean(), self.calculate_stdev())
 
-    #       If you know these two values, you can calculate the mean and the standard deviation
-    #
-    #       For example, if you flip a fair coin 25 times, p = 0.5 and n = 25
-    #       You can then calculate the mean and standard deviation with the following formula:
-    #           mean = p * n
-    #           standard deviation = sqrt(n * p * (1 - p))
+    def calculate_mean(self) -&gt; float:
+        &#34;&#34;&#34;Calculate the mean from p and n&#34;&#34;&#34;
+        n = self.n
+        p = self.p
+        self.mean = mean = n*p
+        return mean
 
-    #
+    def calculate_stdev(self) -&gt; float:
+        &#34;&#34;&#34;Calculate the standard deviation using p and n&#34;&#34;&#34;
+        n = self.n
+        p = self.p
+        self.stdev = stdev = sqrt(n*p*(1-p))
+        return stdev
 
-    def __init__(self, prob=.5, size=20):
+    def read_data_file(self, file_name: str, sample: bool=False) -&gt; None:
+        &#34;&#34;&#34;Read data from a file, DOES NOT UPDATE either `p` or `n`.
 
-        # TODO: store the probability of the distribution in an instance variable p
-        # TODO: store the size of the distribution in an instance variable n
-
-        # TODO: Now that you know p and n, you can calculate the mean and standard deviation
-        #       Use the calculate_mean() and calculate_stdev() methods to calculate the
-        #       distribution mean and standard deviation
-        #
-        #       Then use the init function from the Distribution class to initialize the
-        #       mean and the standard deviation of the distribution
-        #
-        #       Hint: You need to define the calculate_mean() and calculate_stdev() methods
-        #               farther down in the code starting in line 55.
-        #               The init function can get access to these methods via the self
-        #               variable.
-        pass
-
-    def calculate_mean(self):
-
-        &#34;&#34;&#34;Function to calculate the mean from p and n
-
-        Args:
-            None
-
-        Returns:
-            float: mean of the data set
-
+        * the data is always treated as the population randomly selected from
+        * the sample parameter is ignored (it is there for LSP)
+        * the data is assumed to be one float per line
+        * each value either 0.0 or 1.0 (0 or 1 interpreted as floats)
         &#34;&#34;&#34;
+        super().read_data_file(file_name, False)
 
-        # TODO: calculate the mean of the Binomial distribution. Store the mean
-        #       via the self variable and also return the new mean value
+    def replace_stats_with_data(self) -&gt; tuple[float, int]:
+        &#34;&#34;&#34;Function to calculate p and n from the read in data set.
 
-        pass
-
-
-
-    def calculate_stdev(self):
-
-        &#34;&#34;&#34;Function to calculate the standard deviation from p and n.
-
-        Args:
-            None
-
-        Returns:
-            float: standard deviation of the data set
-
+        Where the read in data set is taken as the population.
         &#34;&#34;&#34;
+        if self.data:
+            self.n = n = len(self.data)
+            self.p = p = sum(self.data)/n
+            self.mean = n*p
+            self.stdev = sqrt(n*p*(1-p))
+        return self.p, self.n
 
-        # TODO: calculate the standard deviation of the Binomial distribution. Store
-        #       the result in the self standard deviation attribute. Return the value
-        #       of the standard deviation.
-        pass
+    def plot_histogram(self) -&gt; None:
+        &#34;&#34;&#34;Produce a bar-graph of the data using the matplotlib pyplot library.&#34;&#34;&#34;
+        fig, axis = plt.subplots()
+        axis.hist(self.data)
+        axis.set_title(&#39;Histogram of failures/successes&#39;)
+        axis.set_xlabel(&#39;Data&#39;)
+        axis.set_ylabel(&#39;Count&#39;)
+        plt.show()
 
+    def pdf(self, kf: float) -&gt; float:
+        &#34;&#34;&#34;Binomial prob density function for this Binomial object.&#34;&#34;&#34;
+        k = int(kf)
+        n = self.n
+        p = self.p
+        return comb(n, k)*(p**k)*(1 - p)**(n-k)
 
-
-    def replace_stats_with_data(self):
-
-        &#34;&#34;&#34;Function to calculate p and n from the data set
-
-        Args:
-            None
-
-        Returns:
-            float: the p value
-            float: the n value
-
-        &#34;&#34;&#34;
-
-        # TODO: The read_data_file() from the Generaldistribution class can read in a data
-        #       file. Because the Binomaildistribution class inherits from the Generaldistribution class,
-        #       you don&#39;t need to re-write this method. However,  the method
-        #       doesn&#39;t update the mean or standard deviation of
-        #       a distribution. Hence you are going to write a method that calculates n, p, mean and
-        #       standard deviation from a data set and then updates the n, p, mean and stdev attributes.
-        #       Assume that the data is a list of zeros and ones like [0 1 0 1 1 0 1].
-        #
-        #       Write code that:
-        #           updates the n attribute of the binomial distribution
-        #           updates the p value of the binomial distribution by calculating the
-        #               number of positive trials divided by the total trials
-        #           updates the mean attribute
-        #           updates the standard deviation attribute
-        #
-        #       Hint: You can use the calculate_mean() and calculate_stdev() methods
-        #           defined previously.
-        pass
-
-    def plot_bar(self):
-        &#34;&#34;&#34;Function to output a histogram of the instance variable data using
-        matplotlib pyplot library.
-
-        Args:
-            None
-
-        Returns:
-            None
-        &#34;&#34;&#34;
-
-        # TODO: Use the matplotlib package to plot a bar chart of the data
-        #       The x-axis should have the value zero or one
-        #       The y-axis should have the count of results for each case
-        #
-        #       For example, say you have a coin where heads = 1 and tails = 0.
-        #       If you flipped a coin 35 times, and the coin landed on
-        #       heads 20 times and tails 15 times, the bar chart would have two bars:
-        #       0 on the x-axis and 15 on the y-axis
-        #       1 on the x-axis and 20 on the y-axis
-
-        #       Make sure to label the chart with a title, x-axis label and y-axis label
-        pass
-
-    def pdf(self, k):
-        &#34;&#34;&#34;Probability density function calculator for the gaussian distribution.
-
-        Args:
-            k (float): point for calculating the probability density function
-
-
-        Returns:
-            float: probability density function output
-        &#34;&#34;&#34;
-
-        # TODO: Calculate the probability density function for a binomial distribution
-        #  For a binomial distribution with n trials and probability p,
-        #  the probability density function calculates the likelihood of getting
-        #   k positive outcomes.
-        #
-        #   For example, if you flip a coin n = 60 times, with p = .5,
-        #   what&#39;s the likelihood that the coin lands on heads 40 out of 60 times?
-
-        pass
-
-    def plot_bar_pdf(self):
-
+    def plot_histogram_pdf(self) -&gt; Tuple[List[float], List[float]]:
         &#34;&#34;&#34;Function to plot the pdf of the binomial distribution
 
-        Args:
-            None
-
         Returns:
-            list: x values for the pdf plot
-            list: y values for the pdf plot
-
+        * list: x values used for the pdf plot
+        * list: y values used for the pdf plot
         &#34;&#34;&#34;
+        data = self.data
+        pdf = self.pdf
 
-        # TODO: Use a bar chart to plot the probability density function from
-        # k = 0 to k = n
+        x: List[float] = list(range(self.n + 1))
+        y: List[float] = list((pdf(x) for x in x))
 
-        #   Hint: You&#39;ll need to use the pdf() method defined above to calculate the
-        #   density function for every value of k.
+        # make the plots
+        #fig, axes = plt.subplots(2,sharex=True)
+        fig, axes = plt.subplots(2)
+        fig.subplots_adjust(hspace=.5)
+        axes[0].hist(data, density=True)
+        axes[0].set_title(&#39;Normed Histogram of Data&#39;)
+        axes[0].set_ylabel(&#39;Density&#39;)
 
-        #   Be sure to label the bar chart with a title, x label and y label
+        axes[1].plot(x, y)
+        axes[1].set_title(&#39;Binomial Distribution for p and n&#39;)
+        axes[1].set_ylabel(&#39;Density&#39;)
+        plt.show()
 
-        #   This method should also return the x and y values used to make the chart
-        #   The x and y values should be stored in separate lists
+        return x, y
 
-    def __add__(self, other):
+    def __add__(self, other: Binomial) -&gt; Binomial:
+        &#34;&#34;&#34;Add together two Binomial distributions with equal p.&#34;&#34;&#34;
+        if type(self) is not type(other):
+            msg = &#39;A binomial distribution cannot be added to a {}&#39;
+            msg = msg.format(type(other))
+            raise TypeError(msg)
+        if self.p != other.p:
+            msg = &#39;p values are not equal&#39;
+            raise ValueError(msg)
 
-        &#34;&#34;&#34;Function to add together two Binomial distributions with equal p
+        return Binomial(self.p, self.n + other.n)
 
-        Args:
-            other (Binomial): Binomial instance
+    def __repr__(self) -&gt; str:
+        &#34;&#34;&#34;Output the characteristics of the Binomial instance.
 
-        Returns:
-            Binomial: Binomial distribution
-
+        Returns a string showing:
+        * mean
+        * standard deviation
+        * p
+        * n
         &#34;&#34;&#34;
-
-        try:
-            assert self.p == other.p, &#39;p values are not equal&#39;
-        except AssertionError as error:
-            raise
-
-        # TODO: Define addition for two binomial distributions. Assume that the
-        # p values of the two distributions are the same. The formula for
-        # summing two binomial distributions with different p values is more complicated,
-        # so you are only expected to implement the case for two distributions with equal p.
-
-        # the try, except statement above will raise an exception if the p values are not equal
-
-        # Hint: You need to instantiate a new binomial object with the correct n, p,
-        #   mean and standard deviation values. The __add__ method should return this
-        #   new binomial object.
-
-        #   When adding two binomial distributions, the p value remains the same
-        #   The new n value is the sum of the n values of the two distributions.
-
-        pass
-
-
-    def __repr__(self):
-
-        &#34;&#34;&#34;Function to output the characteristics of the Binomial instance
-
-        Args:
-            None
-
-        Returns:
-            string: characteristics of the Gaussian
-
-        &#34;&#34;&#34;
-
-        # TODO: Define the representation method so that the output looks like
-        #       mean 5, standard deviation 4.5, p .8, n 20
-        #
-        #       with the values replaced by whatever the actual distributions values are
-        #       The method should return a string in the expected format
-
-        pass</code></pre>
+        repr_str = &#39;mean {}, standard deviation {}, p {}, n {}&#39;
+        return repr_str.format(self.mean, self.stdev, self.p, self.n)</code></pre>
 </details>
 </section>
 <section>
@@ -305,10 +203,12 @@ class Binomial(Distribution):
 <dl>
 <dt id="grscheller_courses_distributions.binomial.Binomial"><code class="flex name class">
 <span>class <span class="ident">Binomial</span></span>
-<span>(</span><span>prob=0.5, size=20)</span>
+<span>(</span><span>p: float = 0.5, n: int = 20)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Class for calculating and visualizing Binomial distributions.</p>
+<div class="desc"><p>Class for visualizing data as binomial distributions.</p>
+<p>The binomial distribution represents the number of events with probability
+p happening in n numbers of trials.</p>
 <h2 id="attributes">Attributes</h2>
 <p>mean (float) representing the mean value of the distribution
 stdev (float) representing the standard deviation of the distribution
@@ -320,7 +220,10 @@ n (int) the total number of trials</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Binomial(Distribution):
-    &#34;&#34;&#34; Class for calculating and visualizing Binomial distributions.
+    &#34;&#34;&#34; Class for visualizing data as binomial distributions.
+
+    The binomial distribution represents the number of events with probability
+    p happening in n numbers of trials.
 
     Attributes:
         mean (float) representing the mean value of the distribution
@@ -328,480 +231,304 @@ n (int) the total number of trials</p></div>
         data_list (list of floats) a list of floats to be extracted from the data file
         p (float) representing the probability of an event occurring
         n (int) the total number of trials
-
-
     &#34;&#34;&#34;
+    def __init__(self, p: float=0.5, n: int=20):
+        if not (0.0 &lt;= p &lt;= 1.0) or n &lt; 1:
+            msg1 = &#39;For a binomial distribution, &#39;
+            msg2 = msg3 = &#39;&#39;
+            if not (0.0 &lt;= p &lt;= 1.0):
+                msg2 = &#39;0 &lt;= p &lt;= 1&#39;
+            if n &lt; 0:
+                msg3 = &#39;the number of trials n must be non-negative&#39;
+            if msg2 and msg3:
+                msg = msg1 + msg2 + &#39; and &#39; + msg3 + &#39;.&#39;
+            else:
+                msg = msg1 + msg2 + msg3 + &#39;.&#39;
+            raise ValueError(msg)
 
-    #       A binomial distribution is defined by two variables:
-    #           the probability of getting a positive outcome
-    #           the number of trials
+        self.p: float = p  #: probability of a success
+        self.n: int = n    #: number of events
+        super().__init__(self.calculate_mean(), self.calculate_stdev())
 
-    #       If you know these two values, you can calculate the mean and the standard deviation
-    #
-    #       For example, if you flip a fair coin 25 times, p = 0.5 and n = 25
-    #       You can then calculate the mean and standard deviation with the following formula:
-    #           mean = p * n
-    #           standard deviation = sqrt(n * p * (1 - p))
+    def calculate_mean(self) -&gt; float:
+        &#34;&#34;&#34;Calculate the mean from p and n&#34;&#34;&#34;
+        n = self.n
+        p = self.p
+        self.mean = mean = n*p
+        return mean
 
-    #
+    def calculate_stdev(self) -&gt; float:
+        &#34;&#34;&#34;Calculate the standard deviation using p and n&#34;&#34;&#34;
+        n = self.n
+        p = self.p
+        self.stdev = stdev = sqrt(n*p*(1-p))
+        return stdev
 
-    def __init__(self, prob=.5, size=20):
+    def read_data_file(self, file_name: str, sample: bool=False) -&gt; None:
+        &#34;&#34;&#34;Read data from a file, DOES NOT UPDATE either `p` or `n`.
 
-        # TODO: store the probability of the distribution in an instance variable p
-        # TODO: store the size of the distribution in an instance variable n
-
-        # TODO: Now that you know p and n, you can calculate the mean and standard deviation
-        #       Use the calculate_mean() and calculate_stdev() methods to calculate the
-        #       distribution mean and standard deviation
-        #
-        #       Then use the init function from the Distribution class to initialize the
-        #       mean and the standard deviation of the distribution
-        #
-        #       Hint: You need to define the calculate_mean() and calculate_stdev() methods
-        #               farther down in the code starting in line 55.
-        #               The init function can get access to these methods via the self
-        #               variable.
-        pass
-
-    def calculate_mean(self):
-
-        &#34;&#34;&#34;Function to calculate the mean from p and n
-
-        Args:
-            None
-
-        Returns:
-            float: mean of the data set
-
+        * the data is always treated as the population randomly selected from
+        * the sample parameter is ignored (it is there for LSP)
+        * the data is assumed to be one float per line
+        * each value either 0.0 or 1.0 (0 or 1 interpreted as floats)
         &#34;&#34;&#34;
+        super().read_data_file(file_name, False)
 
-        # TODO: calculate the mean of the Binomial distribution. Store the mean
-        #       via the self variable and also return the new mean value
+    def replace_stats_with_data(self) -&gt; tuple[float, int]:
+        &#34;&#34;&#34;Function to calculate p and n from the read in data set.
 
-        pass
-
-
-
-    def calculate_stdev(self):
-
-        &#34;&#34;&#34;Function to calculate the standard deviation from p and n.
-
-        Args:
-            None
-
-        Returns:
-            float: standard deviation of the data set
-
+        Where the read in data set is taken as the population.
         &#34;&#34;&#34;
+        if self.data:
+            self.n = n = len(self.data)
+            self.p = p = sum(self.data)/n
+            self.mean = n*p
+            self.stdev = sqrt(n*p*(1-p))
+        return self.p, self.n
 
-        # TODO: calculate the standard deviation of the Binomial distribution. Store
-        #       the result in the self standard deviation attribute. Return the value
-        #       of the standard deviation.
-        pass
+    def plot_histogram(self) -&gt; None:
+        &#34;&#34;&#34;Produce a bar-graph of the data using the matplotlib pyplot library.&#34;&#34;&#34;
+        fig, axis = plt.subplots()
+        axis.hist(self.data)
+        axis.set_title(&#39;Histogram of failures/successes&#39;)
+        axis.set_xlabel(&#39;Data&#39;)
+        axis.set_ylabel(&#39;Count&#39;)
+        plt.show()
 
+    def pdf(self, kf: float) -&gt; float:
+        &#34;&#34;&#34;Binomial prob density function for this Binomial object.&#34;&#34;&#34;
+        k = int(kf)
+        n = self.n
+        p = self.p
+        return comb(n, k)*(p**k)*(1 - p)**(n-k)
 
-
-    def replace_stats_with_data(self):
-
-        &#34;&#34;&#34;Function to calculate p and n from the data set
-
-        Args:
-            None
-
-        Returns:
-            float: the p value
-            float: the n value
-
-        &#34;&#34;&#34;
-
-        # TODO: The read_data_file() from the Generaldistribution class can read in a data
-        #       file. Because the Binomaildistribution class inherits from the Generaldistribution class,
-        #       you don&#39;t need to re-write this method. However,  the method
-        #       doesn&#39;t update the mean or standard deviation of
-        #       a distribution. Hence you are going to write a method that calculates n, p, mean and
-        #       standard deviation from a data set and then updates the n, p, mean and stdev attributes.
-        #       Assume that the data is a list of zeros and ones like [0 1 0 1 1 0 1].
-        #
-        #       Write code that:
-        #           updates the n attribute of the binomial distribution
-        #           updates the p value of the binomial distribution by calculating the
-        #               number of positive trials divided by the total trials
-        #           updates the mean attribute
-        #           updates the standard deviation attribute
-        #
-        #       Hint: You can use the calculate_mean() and calculate_stdev() methods
-        #           defined previously.
-        pass
-
-    def plot_bar(self):
-        &#34;&#34;&#34;Function to output a histogram of the instance variable data using
-        matplotlib pyplot library.
-
-        Args:
-            None
-
-        Returns:
-            None
-        &#34;&#34;&#34;
-
-        # TODO: Use the matplotlib package to plot a bar chart of the data
-        #       The x-axis should have the value zero or one
-        #       The y-axis should have the count of results for each case
-        #
-        #       For example, say you have a coin where heads = 1 and tails = 0.
-        #       If you flipped a coin 35 times, and the coin landed on
-        #       heads 20 times and tails 15 times, the bar chart would have two bars:
-        #       0 on the x-axis and 15 on the y-axis
-        #       1 on the x-axis and 20 on the y-axis
-
-        #       Make sure to label the chart with a title, x-axis label and y-axis label
-        pass
-
-    def pdf(self, k):
-        &#34;&#34;&#34;Probability density function calculator for the gaussian distribution.
-
-        Args:
-            k (float): point for calculating the probability density function
-
-
-        Returns:
-            float: probability density function output
-        &#34;&#34;&#34;
-
-        # TODO: Calculate the probability density function for a binomial distribution
-        #  For a binomial distribution with n trials and probability p,
-        #  the probability density function calculates the likelihood of getting
-        #   k positive outcomes.
-        #
-        #   For example, if you flip a coin n = 60 times, with p = .5,
-        #   what&#39;s the likelihood that the coin lands on heads 40 out of 60 times?
-
-        pass
-
-    def plot_bar_pdf(self):
-
+    def plot_histogram_pdf(self) -&gt; Tuple[List[float], List[float]]:
         &#34;&#34;&#34;Function to plot the pdf of the binomial distribution
 
-        Args:
-            None
-
         Returns:
-            list: x values for the pdf plot
-            list: y values for the pdf plot
-
+        * list: x values used for the pdf plot
+        * list: y values used for the pdf plot
         &#34;&#34;&#34;
+        data = self.data
+        pdf = self.pdf
 
-        # TODO: Use a bar chart to plot the probability density function from
-        # k = 0 to k = n
+        x: List[float] = list(range(self.n + 1))
+        y: List[float] = list((pdf(x) for x in x))
 
-        #   Hint: You&#39;ll need to use the pdf() method defined above to calculate the
-        #   density function for every value of k.
+        # make the plots
+        #fig, axes = plt.subplots(2,sharex=True)
+        fig, axes = plt.subplots(2)
+        fig.subplots_adjust(hspace=.5)
+        axes[0].hist(data, density=True)
+        axes[0].set_title(&#39;Normed Histogram of Data&#39;)
+        axes[0].set_ylabel(&#39;Density&#39;)
 
-        #   Be sure to label the bar chart with a title, x label and y label
+        axes[1].plot(x, y)
+        axes[1].set_title(&#39;Binomial Distribution for p and n&#39;)
+        axes[1].set_ylabel(&#39;Density&#39;)
+        plt.show()
 
-        #   This method should also return the x and y values used to make the chart
-        #   The x and y values should be stored in separate lists
+        return x, y
 
-    def __add__(self, other):
+    def __add__(self, other: Binomial) -&gt; Binomial:
+        &#34;&#34;&#34;Add together two Binomial distributions with equal p.&#34;&#34;&#34;
+        if type(self) is not type(other):
+            msg = &#39;A binomial distribution cannot be added to a {}&#39;
+            msg = msg.format(type(other))
+            raise TypeError(msg)
+        if self.p != other.p:
+            msg = &#39;p values are not equal&#39;
+            raise ValueError(msg)
 
-        &#34;&#34;&#34;Function to add together two Binomial distributions with equal p
+        return Binomial(self.p, self.n + other.n)
 
-        Args:
-            other (Binomial): Binomial instance
+    def __repr__(self) -&gt; str:
+        &#34;&#34;&#34;Output the characteristics of the Binomial instance.
 
-        Returns:
-            Binomial: Binomial distribution
-
+        Returns a string showing:
+        * mean
+        * standard deviation
+        * p
+        * n
         &#34;&#34;&#34;
-
-        try:
-            assert self.p == other.p, &#39;p values are not equal&#39;
-        except AssertionError as error:
-            raise
-
-        # TODO: Define addition for two binomial distributions. Assume that the
-        # p values of the two distributions are the same. The formula for
-        # summing two binomial distributions with different p values is more complicated,
-        # so you are only expected to implement the case for two distributions with equal p.
-
-        # the try, except statement above will raise an exception if the p values are not equal
-
-        # Hint: You need to instantiate a new binomial object with the correct n, p,
-        #   mean and standard deviation values. The __add__ method should return this
-        #   new binomial object.
-
-        #   When adding two binomial distributions, the p value remains the same
-        #   The new n value is the sum of the n values of the two distributions.
-
-        pass
-
-
-    def __repr__(self):
-
-        &#34;&#34;&#34;Function to output the characteristics of the Binomial instance
-
-        Args:
-            None
-
-        Returns:
-            string: characteristics of the Gaussian
-
-        &#34;&#34;&#34;
-
-        # TODO: Define the representation method so that the output looks like
-        #       mean 5, standard deviation 4.5, p .8, n 20
-        #
-        #       with the values replaced by whatever the actual distributions values are
-        #       The method should return a string in the expected format
-
-        pass</code></pre>
+        repr_str = &#39;mean {}, standard deviation {}, p {}, n {}&#39;
+        return repr_str.format(self.mean, self.stdev, self.p, self.n)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="grscheller_courses_distributions.distribution.Distribution" href="distribution.html#grscheller_courses_distributions.distribution.Distribution">Distribution</a></li>
 </ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="grscheller_courses_distributions.binomial.Binomial.n"><code class="name">var <span class="ident">n</span></code></dt>
+<dd>
+<div class="desc"><p>number of events</p></div>
+</dd>
+<dt id="grscheller_courses_distributions.binomial.Binomial.p"><code class="name">var <span class="ident">p</span></code></dt>
+<dd>
+<div class="desc"><p>probability of a success</p></div>
+</dd>
+</dl>
 <h3>Methods</h3>
 <dl>
 <dt id="grscheller_courses_distributions.binomial.Binomial.calculate_mean"><code class="name flex">
-<span>def <span class="ident">calculate_mean</span></span>(<span>self)</span>
+<span>def <span class="ident">calculate_mean</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Function to calculate the mean from p and n</p>
-<h2 id="args">Args</h2>
-<p>None</p>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>float</code></dt>
-<dd>mean of the data set</dd>
-</dl></div>
+<div class="desc"><p>Calculate the mean from p and n</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def calculate_mean(self):
-
-    &#34;&#34;&#34;Function to calculate the mean from p and n
-
-    Args:
-        None
-
-    Returns:
-        float: mean of the data set
-
-    &#34;&#34;&#34;
-
-    # TODO: calculate the mean of the Binomial distribution. Store the mean
-    #       via the self variable and also return the new mean value
-
-    pass</code></pre>
+<pre><code class="python">def calculate_mean(self) -&gt; float:
+    &#34;&#34;&#34;Calculate the mean from p and n&#34;&#34;&#34;
+    n = self.n
+    p = self.p
+    self.mean = mean = n*p
+    return mean</code></pre>
 </details>
 </dd>
 <dt id="grscheller_courses_distributions.binomial.Binomial.calculate_stdev"><code class="name flex">
-<span>def <span class="ident">calculate_stdev</span></span>(<span>self)</span>
+<span>def <span class="ident">calculate_stdev</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Function to calculate the standard deviation from p and n.</p>
-<h2 id="args">Args</h2>
-<p>None</p>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>float</code></dt>
-<dd>standard deviation of the data set</dd>
-</dl></div>
+<div class="desc"><p>Calculate the standard deviation using p and n</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def calculate_stdev(self):
-
-    &#34;&#34;&#34;Function to calculate the standard deviation from p and n.
-
-    Args:
-        None
-
-    Returns:
-        float: standard deviation of the data set
-
-    &#34;&#34;&#34;
-
-    # TODO: calculate the standard deviation of the Binomial distribution. Store
-    #       the result in the self standard deviation attribute. Return the value
-    #       of the standard deviation.
-    pass</code></pre>
+<pre><code class="python">def calculate_stdev(self) -&gt; float:
+    &#34;&#34;&#34;Calculate the standard deviation using p and n&#34;&#34;&#34;
+    n = self.n
+    p = self.p
+    self.stdev = stdev = sqrt(n*p*(1-p))
+    return stdev</code></pre>
 </details>
 </dd>
 <dt id="grscheller_courses_distributions.binomial.Binomial.pdf"><code class="name flex">
-<span>def <span class="ident">pdf</span></span>(<span>self, k)</span>
+<span>def <span class="ident">pdf</span></span>(<span>self, kf: float) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Probability density function calculator for the gaussian distribution.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>k</code></strong> :&ensp;<code>float</code></dt>
-<dd>point for calculating the probability density function</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>float</code></dt>
-<dd>probability density function output</dd>
-</dl></div>
+<div class="desc"><p>Binomial prob density function for this Binomial object.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def pdf(self, k):
-    &#34;&#34;&#34;Probability density function calculator for the gaussian distribution.
-
-    Args:
-        k (float): point for calculating the probability density function
-
-
-    Returns:
-        float: probability density function output
-    &#34;&#34;&#34;
-
-    # TODO: Calculate the probability density function for a binomial distribution
-    #  For a binomial distribution with n trials and probability p,
-    #  the probability density function calculates the likelihood of getting
-    #   k positive outcomes.
-    #
-    #   For example, if you flip a coin n = 60 times, with p = .5,
-    #   what&#39;s the likelihood that the coin lands on heads 40 out of 60 times?
-
-    pass</code></pre>
+<pre><code class="python">def pdf(self, kf: float) -&gt; float:
+    &#34;&#34;&#34;Binomial prob density function for this Binomial object.&#34;&#34;&#34;
+    k = int(kf)
+    n = self.n
+    p = self.p
+    return comb(n, k)*(p**k)*(1 - p)**(n-k)</code></pre>
 </details>
 </dd>
-<dt id="grscheller_courses_distributions.binomial.Binomial.plot_bar"><code class="name flex">
-<span>def <span class="ident">plot_bar</span></span>(<span>self)</span>
+<dt id="grscheller_courses_distributions.binomial.Binomial.plot_histogram"><code class="name flex">
+<span>def <span class="ident">plot_histogram</span></span>(<span>self) ‑> None</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Function to output a histogram of the instance variable data using
-matplotlib pyplot library.</p>
-<h2 id="args">Args</h2>
-<p>None</p>
-<h2 id="returns">Returns</h2>
-<p>None</p></div>
+<div class="desc"><p>Produce a bar-graph of the data using the matplotlib pyplot library.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def plot_bar(self):
-    &#34;&#34;&#34;Function to output a histogram of the instance variable data using
-    matplotlib pyplot library.
-
-    Args:
-        None
-
-    Returns:
-        None
-    &#34;&#34;&#34;
-
-    # TODO: Use the matplotlib package to plot a bar chart of the data
-    #       The x-axis should have the value zero or one
-    #       The y-axis should have the count of results for each case
-    #
-    #       For example, say you have a coin where heads = 1 and tails = 0.
-    #       If you flipped a coin 35 times, and the coin landed on
-    #       heads 20 times and tails 15 times, the bar chart would have two bars:
-    #       0 on the x-axis and 15 on the y-axis
-    #       1 on the x-axis and 20 on the y-axis
-
-    #       Make sure to label the chart with a title, x-axis label and y-axis label
-    pass</code></pre>
+<pre><code class="python">def plot_histogram(self) -&gt; None:
+    &#34;&#34;&#34;Produce a bar-graph of the data using the matplotlib pyplot library.&#34;&#34;&#34;
+    fig, axis = plt.subplots()
+    axis.hist(self.data)
+    axis.set_title(&#39;Histogram of failures/successes&#39;)
+    axis.set_xlabel(&#39;Data&#39;)
+    axis.set_ylabel(&#39;Count&#39;)
+    plt.show()</code></pre>
 </details>
 </dd>
-<dt id="grscheller_courses_distributions.binomial.Binomial.plot_bar_pdf"><code class="name flex">
-<span>def <span class="ident">plot_bar_pdf</span></span>(<span>self)</span>
+<dt id="grscheller_courses_distributions.binomial.Binomial.plot_histogram_pdf"><code class="name flex">
+<span>def <span class="ident">plot_histogram_pdf</span></span>(<span>self) ‑> Tuple[List[float], List[float]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Function to plot the pdf of the binomial distribution</p>
-<h2 id="args">Args</h2>
-<p>None</p>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>list</code></dt>
-<dd>x values for the pdf plot</dd>
-<dt><code>list</code></dt>
-<dd>y values for the pdf plot</dd>
-</dl></div>
+<p>Returns:
+* list: x values used for the pdf plot
+* list: y values used for the pdf plot</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def plot_bar_pdf(self):
-
+<pre><code class="python">def plot_histogram_pdf(self) -&gt; Tuple[List[float], List[float]]:
     &#34;&#34;&#34;Function to plot the pdf of the binomial distribution
 
-    Args:
-        None
-
     Returns:
-        list: x values for the pdf plot
-        list: y values for the pdf plot
-
+    * list: x values used for the pdf plot
+    * list: y values used for the pdf plot
     &#34;&#34;&#34;
+    data = self.data
+    pdf = self.pdf
 
-    # TODO: Use a bar chart to plot the probability density function from
-    # k = 0 to k = n
+    x: List[float] = list(range(self.n + 1))
+    y: List[float] = list((pdf(x) for x in x))
 
-    #   Hint: You&#39;ll need to use the pdf() method defined above to calculate the
-    #   density function for every value of k.
+    # make the plots
+    #fig, axes = plt.subplots(2,sharex=True)
+    fig, axes = plt.subplots(2)
+    fig.subplots_adjust(hspace=.5)
+    axes[0].hist(data, density=True)
+    axes[0].set_title(&#39;Normed Histogram of Data&#39;)
+    axes[0].set_ylabel(&#39;Density&#39;)
 
-    #   Be sure to label the bar chart with a title, x label and y label
+    axes[1].plot(x, y)
+    axes[1].set_title(&#39;Binomial Distribution for p and n&#39;)
+    axes[1].set_ylabel(&#39;Density&#39;)
+    plt.show()
 
-    #   This method should also return the x and y values used to make the chart
-    #   The x and y values should be stored in separate lists</code></pre>
+    return x, y</code></pre>
+</details>
+</dd>
+<dt id="grscheller_courses_distributions.binomial.Binomial.read_data_file"><code class="name flex">
+<span>def <span class="ident">read_data_file</span></span>(<span>self, file_name: str, sample: bool = False) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Read data from a file, DOES NOT UPDATE either <code>p</code> or <code>n</code>.</p>
+<ul>
+<li>the data is always treated as the population randomly selected from</li>
+<li>the sample parameter is ignored (it is there for LSP)</li>
+<li>the data is assumed to be one float per line</li>
+<li>each value either 0.0 or 1.0 (0 or 1 interpreted as floats)</li>
+</ul></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_data_file(self, file_name: str, sample: bool=False) -&gt; None:
+    &#34;&#34;&#34;Read data from a file, DOES NOT UPDATE either `p` or `n`.
+
+    * the data is always treated as the population randomly selected from
+    * the sample parameter is ignored (it is there for LSP)
+    * the data is assumed to be one float per line
+    * each value either 0.0 or 1.0 (0 or 1 interpreted as floats)
+    &#34;&#34;&#34;
+    super().read_data_file(file_name, False)</code></pre>
 </details>
 </dd>
 <dt id="grscheller_courses_distributions.binomial.Binomial.replace_stats_with_data"><code class="name flex">
-<span>def <span class="ident">replace_stats_with_data</span></span>(<span>self)</span>
+<span>def <span class="ident">replace_stats_with_data</span></span>(<span>self) ‑> tuple[float, int]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Function to calculate p and n from the data set</p>
-<h2 id="args">Args</h2>
-<p>None</p>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>float</code></dt>
-<dd>the p value</dd>
-<dt><code>float</code></dt>
-<dd>the n value</dd>
-</dl></div>
+<div class="desc"><p>Function to calculate p and n from the read in data set.</p>
+<p>Where the read in data set is taken as the population.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def replace_stats_with_data(self):
+<pre><code class="python">def replace_stats_with_data(self) -&gt; tuple[float, int]:
+    &#34;&#34;&#34;Function to calculate p and n from the read in data set.
 
-    &#34;&#34;&#34;Function to calculate p and n from the data set
-
-    Args:
-        None
-
-    Returns:
-        float: the p value
-        float: the n value
-
+    Where the read in data set is taken as the population.
     &#34;&#34;&#34;
-
-    # TODO: The read_data_file() from the Generaldistribution class can read in a data
-    #       file. Because the Binomaildistribution class inherits from the Generaldistribution class,
-    #       you don&#39;t need to re-write this method. However,  the method
-    #       doesn&#39;t update the mean or standard deviation of
-    #       a distribution. Hence you are going to write a method that calculates n, p, mean and
-    #       standard deviation from a data set and then updates the n, p, mean and stdev attributes.
-    #       Assume that the data is a list of zeros and ones like [0 1 0 1 1 0 1].
-    #
-    #       Write code that:
-    #           updates the n attribute of the binomial distribution
-    #           updates the p value of the binomial distribution by calculating the
-    #               number of positive trials divided by the total trials
-    #           updates the mean attribute
-    #           updates the standard deviation attribute
-    #
-    #       Hint: You can use the calculate_mean() and calculate_stdev() methods
-    #           defined previously.
-    pass</code></pre>
+    if self.data:
+        self.n = n = len(self.data)
+        self.p = p = sum(self.data)/n
+        self.mean = n*p
+        self.stdev = sqrt(n*p*(1-p))
+    return self.p, self.n</code></pre>
 </details>
 </dd>
 </dl>
@@ -809,8 +536,12 @@ matplotlib pyplot library.</p>
 <ul class="hlist">
 <li><code><b><a title="grscheller_courses_distributions.distribution.Distribution" href="distribution.html#grscheller_courses_distributions.distribution.Distribution">Distribution</a></b></code>:
 <ul class="hlist">
+<li><code><a title="grscheller_courses_distributions.distribution.Distribution.calc_data_stats" href="distribution.html#grscheller_courses_distributions.distribution.Distribution.calc_data_stats">calc_data_stats</a></code></li>
+<li><code><a title="grscheller_courses_distributions.distribution.Distribution.calculate_data_mean" href="distribution.html#grscheller_courses_distributions.distribution.Distribution.calculate_data_mean">calculate_data_mean</a></code></li>
+<li><code><a title="grscheller_courses_distributions.distribution.Distribution.calculate_data_stdev" href="distribution.html#grscheller_courses_distributions.distribution.Distribution.calculate_data_stdev">calculate_data_stdev</a></code></li>
+<li><code><a title="grscheller_courses_distributions.distribution.Distribution.data" href="distribution.html#grscheller_courses_distributions.distribution.Distribution.data">data</a></code></li>
+<li><code><a title="grscheller_courses_distributions.distribution.Distribution.is_sample" href="distribution.html#grscheller_courses_distributions.distribution.Distribution.is_sample">is_sample</a></code></li>
 <li><code><a title="grscheller_courses_distributions.distribution.Distribution.mean" href="distribution.html#grscheller_courses_distributions.distribution.Distribution.mean">mean</a></code></li>
-<li><code><a title="grscheller_courses_distributions.distribution.Distribution.read_data_file" href="distribution.html#grscheller_courses_distributions.distribution.Distribution.read_data_file">read_data_file</a></code></li>
 <li><code><a title="grscheller_courses_distributions.distribution.Distribution.stdev" href="distribution.html#grscheller_courses_distributions.distribution.Distribution.stdev">stdev</a></code></li>
 </ul>
 </li>
@@ -837,9 +568,12 @@ matplotlib pyplot library.</p>
 <ul class="">
 <li><code><a title="grscheller_courses_distributions.binomial.Binomial.calculate_mean" href="#grscheller_courses_distributions.binomial.Binomial.calculate_mean">calculate_mean</a></code></li>
 <li><code><a title="grscheller_courses_distributions.binomial.Binomial.calculate_stdev" href="#grscheller_courses_distributions.binomial.Binomial.calculate_stdev">calculate_stdev</a></code></li>
+<li><code><a title="grscheller_courses_distributions.binomial.Binomial.n" href="#grscheller_courses_distributions.binomial.Binomial.n">n</a></code></li>
+<li><code><a title="grscheller_courses_distributions.binomial.Binomial.p" href="#grscheller_courses_distributions.binomial.Binomial.p">p</a></code></li>
 <li><code><a title="grscheller_courses_distributions.binomial.Binomial.pdf" href="#grscheller_courses_distributions.binomial.Binomial.pdf">pdf</a></code></li>
-<li><code><a title="grscheller_courses_distributions.binomial.Binomial.plot_bar" href="#grscheller_courses_distributions.binomial.Binomial.plot_bar">plot_bar</a></code></li>
-<li><code><a title="grscheller_courses_distributions.binomial.Binomial.plot_bar_pdf" href="#grscheller_courses_distributions.binomial.Binomial.plot_bar_pdf">plot_bar_pdf</a></code></li>
+<li><code><a title="grscheller_courses_distributions.binomial.Binomial.plot_histogram" href="#grscheller_courses_distributions.binomial.Binomial.plot_histogram">plot_histogram</a></code></li>
+<li><code><a title="grscheller_courses_distributions.binomial.Binomial.plot_histogram_pdf" href="#grscheller_courses_distributions.binomial.Binomial.plot_histogram_pdf">plot_histogram_pdf</a></code></li>
+<li><code><a title="grscheller_courses_distributions.binomial.Binomial.read_data_file" href="#grscheller_courses_distributions.binomial.Binomial.read_data_file">read_data_file</a></code></li>
 <li><code><a title="grscheller_courses_distributions.binomial.Binomial.replace_stats_with_data" href="#grscheller_courses_distributions.binomial.Binomial.replace_stats_with_data">replace_stats_with_data</a></code></li>
 </ul>
 </li>

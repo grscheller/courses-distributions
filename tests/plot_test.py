@@ -13,42 +13,38 @@
 from grscheller_courses_distributions.gaussian import Gaussian
 from grscheller_courses_distributions.binomial import Binomial
 
-gauss = Gaussian(25, 2)
-bernoulli = Binomial(0.4, 20)
-
-def plot_viewable(plot_name: str) -> bool:
-    print(f'\nDid the {plot_name} plot display correctly? ([y] or n) ', end='')
-    ans = input()
-    return True if ans != 'n' else False
-
 class Test_Gaussian:
 
-    def test_plot_histogram(self) -> None:
+    def test_plot_data_read(self) -> None:
+        gauss = Gaussian(100, 30)
+        gauss.read_data_file('data/numbers.txt')
         gauss.plot_histogram()
-        if plot_viewable('histogram'):
-            assert True
-        else:
-            assert False
 
-    def test_plot_histogram_pdf(self) -> None:
+    def test_plot_pdf_readonly(self) -> None:
+        gauss = Gaussian(100, 30)
+        gauss.read_data_file('data/numbers.txt')
         gauss.plot_histogram_pdf()
-        if plot_viewable('histogram_pdf'):
-            assert True
-        else:
-            assert False
+
+    def test_plot_pdf_readcalc(self) -> None:
+        gauss = Gaussian(25, 2)
+        gauss.read_data_file('data/numbers.txt')
+        gauss.calculate_data_stdev(True)
+        gauss.plot_histogram_pdf()
 
 class Test_Binomial:
 
-    def test_plot_histogram(self) -> None:
-        gauss.plot_histogram()
-        if plot_viewable('histogram'):
-            assert True
-        else:
-            assert False
+    def test_plot_data(self) -> None:
+        bernoulli = Binomial(0.4, 20)
+        bernoulli.read_data_file('data/numbers_binomial.txt')
+        bernoulli.plot_histogram()
 
-    def test_plot_histogram_pdf(self) -> None:
-        gauss.plot_histogram_pdf()
-        if plot_viewable('histogram_pdf'):
-            assert True
-        else:
-            assert False
+    def test_plot_pdf_readonly(self) -> None:
+        bernoulli = Binomial(0.4, 20)
+        bernoulli.read_data_file('data/numbers_binomial.txt')
+        bernoulli.plot_histogram_pdf()
+
+    def test_plot_pdf_readcalc(self) -> None:
+        bernoulli = Binomial(0.4, 20)
+        bernoulli.read_data_file('data/numbers_binomial.txt')
+        bernoulli.replace_stats_with_data()
+        bernoulli.plot_histogram_pdf()

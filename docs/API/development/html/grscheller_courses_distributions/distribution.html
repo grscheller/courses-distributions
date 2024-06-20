@@ -49,7 +49,6 @@
 
 from __future__ import annotations
 
-from typing import List
 import math
 
 __all__ = [&#39;Distribution&#39;]
@@ -57,52 +56,63 @@ __all__ = [&#39;Distribution&#39;]
 class Distribution():
     &#34;&#34;&#34;Base Class for calculating and visualizing probability distributions.&#34;&#34;&#34;
 
-    def __init__(self, mean: float=0.0, stdev: float=1.0):
-        self.sample = True
-        self.sample = False
-        #: Assigned value for mean.
-        self.mean = mean
-        self.stdev = stdev             #: Assigned value of stdev
-        self.data: List[float] = []
+    def __init__(self, mean: float, stdev: float):
+        self.mean: float = mean      #: mean of the distribution
+        self.stdev: float = stdev    #: standard deviation of the distribution``
+        self.data: list[float] = []  #: data determining parameters of the distribution
+        self.is_sample = False       #: whether data is a sample or the entire population
 
     def read_data_file(self, file_name: str, sample: bool=True) -&gt; None:
-        &#34;&#34;&#34;Method to read in data from a text file. The text file should have
-        one number (float) per line. The numbers are stored in the data attribute.
-        After reading in the file, the mean and standard deviation are calculated.
+        &#34;&#34;&#34;Method to read in data from a text file.
+
+        The text file should have
+
+        * one number (float) per line
+        * the numbers are stored in the data attribute
+        * the mean attribute is then calculated from the data
+        * the standard deviation (population or sample) is calculated
         &#34;&#34;&#34;
+        self.is_sample = sample
 
         # Read in the data from the file given
-        data_list: List[float] = []
+        data_list: list[float] = []
         with open(file_name) as file:
             line = file.readline()
             while line:
-                data_list.append(int(line))
+                data_list.append(float(line))
                 line = file.readline()
 
-        # Update Gaussian object
         self.data = data_list
+        # self.calc_data_stats(sample)
 
-    def calculate_mean(self) -&gt; float:
-        &#34;&#34;&#34;From the data set, calculate &amp; return the mean.&#34;&#34;&#34;
+    def calc_data_stats(self, sample: bool) -&gt; None:
+        &#34;&#34;&#34;Calculate data statistics (mean/stdev for now)
 
-        mu = self.mean
+        Note: Not used for course
+        &#34;&#34;&#34;
+        self.is_sample = sample
+        self.calculate_data_stdev(sample)
+        # TODO: add other statistics? Maybe median, mode, other moments?
+
+    def calculate_data_mean(self) -&gt; float:
+        &#34;&#34;&#34;From the data set, calculate &amp; return the mean if it exists.&#34;&#34;&#34;
         n = len(self.data)
         if n &gt; 0:
-            mu = sum(self.data)/n
-            self.mean = mu
+            self.mean = sum(self.data)/n
+        return self.mean
 
-        return mu
+    def calculate_data_stdev(self, sample: bool=False) -&gt; float:
+        &#34;&#34;&#34;From the data set, calculate &amp; return the stdev if it exists.
 
-    def calculate_stdev(self, sample: bool=True) -&gt; float:
-        &#34;&#34;&#34;Set &amp; return a standard deviation calculated from the data set.
-
-        * If sample is True, calculate a sample standard deviation. 
-        * If sample is False, calculate a population standard deviation. 
+        * If sample is True, calculate a sample standard deviation.
+        * If sample is False, calculate a population standard deviation.
 
         &#34;&#34;&#34;
-
+        # NOTE: Retaining sample parameter to keep consistent with course&#39;s API,
+        #       otherwise I don&#39;t need it and could do things more cleanly.
+        self.is_sample = sample
+        mu = self.calculate_data_mean()
         n = len(self.data)
-        mu = self.calculate_mean()
 
         if sample:
             # sample standard deviation
@@ -127,7 +137,7 @@ class Distribution():
 <dl>
 <dt id="grscheller_courses_distributions.distribution.Distribution"><code class="flex name class">
 <span>class <span class="ident">Distribution</span></span>
-<span>(</span><span>mean: float = 0.0, stdev: float = 1.0)</span>
+<span>(</span><span>mean: float, stdev: float)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Base Class for calculating and visualizing probability distributions.</p></div>
@@ -138,52 +148,63 @@ class Distribution():
 <pre><code class="python">class Distribution():
     &#34;&#34;&#34;Base Class for calculating and visualizing probability distributions.&#34;&#34;&#34;
 
-    def __init__(self, mean: float=0.0, stdev: float=1.0):
-        self.sample = True
-        self.sample = False
-        #: Assigned value for mean.
-        self.mean = mean
-        self.stdev = stdev             #: Assigned value of stdev
-        self.data: List[float] = []
+    def __init__(self, mean: float, stdev: float):
+        self.mean: float = mean      #: mean of the distribution
+        self.stdev: float = stdev    #: standard deviation of the distribution``
+        self.data: list[float] = []  #: data determining parameters of the distribution
+        self.is_sample = False       #: whether data is a sample or the entire population
 
     def read_data_file(self, file_name: str, sample: bool=True) -&gt; None:
-        &#34;&#34;&#34;Method to read in data from a text file. The text file should have
-        one number (float) per line. The numbers are stored in the data attribute.
-        After reading in the file, the mean and standard deviation are calculated.
+        &#34;&#34;&#34;Method to read in data from a text file.
+
+        The text file should have
+
+        * one number (float) per line
+        * the numbers are stored in the data attribute
+        * the mean attribute is then calculated from the data
+        * the standard deviation (population or sample) is calculated
         &#34;&#34;&#34;
+        self.is_sample = sample
 
         # Read in the data from the file given
-        data_list: List[float] = []
+        data_list: list[float] = []
         with open(file_name) as file:
             line = file.readline()
             while line:
-                data_list.append(int(line))
+                data_list.append(float(line))
                 line = file.readline()
 
-        # Update Gaussian object
         self.data = data_list
+        # self.calc_data_stats(sample)
 
-    def calculate_mean(self) -&gt; float:
-        &#34;&#34;&#34;From the data set, calculate &amp; return the mean.&#34;&#34;&#34;
+    def calc_data_stats(self, sample: bool) -&gt; None:
+        &#34;&#34;&#34;Calculate data statistics (mean/stdev for now)
 
-        mu = self.mean
+        Note: Not used for course
+        &#34;&#34;&#34;
+        self.is_sample = sample
+        self.calculate_data_stdev(sample)
+        # TODO: add other statistics? Maybe median, mode, other moments?
+
+    def calculate_data_mean(self) -&gt; float:
+        &#34;&#34;&#34;From the data set, calculate &amp; return the mean if it exists.&#34;&#34;&#34;
         n = len(self.data)
         if n &gt; 0:
-            mu = sum(self.data)/n
-            self.mean = mu
+            self.mean = sum(self.data)/n
+        return self.mean
 
-        return mu
+    def calculate_data_stdev(self, sample: bool=False) -&gt; float:
+        &#34;&#34;&#34;From the data set, calculate &amp; return the stdev if it exists.
 
-    def calculate_stdev(self, sample: bool=True) -&gt; float:
-        &#34;&#34;&#34;Set &amp; return a standard deviation calculated from the data set.
-
-        * If sample is True, calculate a sample standard deviation. 
-        * If sample is False, calculate a population standard deviation. 
+        * If sample is True, calculate a sample standard deviation.
+        * If sample is False, calculate a population standard deviation.
 
         &#34;&#34;&#34;
-
+        # NOTE: Retaining sample parameter to keep consistent with course&#39;s API,
+        #       otherwise I don&#39;t need it and could do things more cleanly.
+        self.is_sample = sample
+        mu = self.calculate_data_mean()
         n = len(self.data)
-        mu = self.calculate_mean()
 
         if sample:
             # sample standard deviation
@@ -203,61 +224,87 @@ class Distribution():
 </ul>
 <h3>Instance variables</h3>
 <dl>
+<dt id="grscheller_courses_distributions.distribution.Distribution.data"><code class="name">var <span class="ident">data</span></code></dt>
+<dd>
+<div class="desc"><p>data determining parameters of the distribution</p></div>
+</dd>
+<dt id="grscheller_courses_distributions.distribution.Distribution.is_sample"><code class="name">var <span class="ident">is_sample</span></code></dt>
+<dd>
+<div class="desc"><p>whether data is a sample or the entire population</p></div>
+</dd>
 <dt id="grscheller_courses_distributions.distribution.Distribution.mean"><code class="name">var <span class="ident">mean</span></code></dt>
 <dd>
-<div class="desc"><p>Assigned value for mean.</p></div>
+<div class="desc"><p>mean of the distribution</p></div>
 </dd>
 <dt id="grscheller_courses_distributions.distribution.Distribution.stdev"><code class="name">var <span class="ident">stdev</span></code></dt>
 <dd>
-<div class="desc"><p>Assigned value of stdev</p></div>
+<div class="desc"><p>standard deviation of the distribution``</p></div>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="grscheller_courses_distributions.distribution.Distribution.calculate_mean"><code class="name flex">
-<span>def <span class="ident">calculate_mean</span></span>(<span>self) ‑> float</span>
+<dt id="grscheller_courses_distributions.distribution.Distribution.calc_data_stats"><code class="name flex">
+<span>def <span class="ident">calc_data_stats</span></span>(<span>self, sample: bool) ‑> None</span>
 </code></dt>
 <dd>
-<div class="desc"><p>From the data set, calculate &amp; return the mean.</p></div>
+<div class="desc"><p>Calculate data statistics (mean/stdev for now)</p>
+<p>Note: Not used for course</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def calculate_mean(self) -&gt; float:
-    &#34;&#34;&#34;From the data set, calculate &amp; return the mean.&#34;&#34;&#34;
+<pre><code class="python">def calc_data_stats(self, sample: bool) -&gt; None:
+    &#34;&#34;&#34;Calculate data statistics (mean/stdev for now)
 
-    mu = self.mean
-    n = len(self.data)
-    if n &gt; 0:
-        mu = sum(self.data)/n
-        self.mean = mu
-
-    return mu</code></pre>
+    Note: Not used for course
+    &#34;&#34;&#34;
+    self.is_sample = sample
+    self.calculate_data_stdev(sample)
+    # TODO: add other statistics? Maybe median, mode, other moments?</code></pre>
 </details>
 </dd>
-<dt id="grscheller_courses_distributions.distribution.Distribution.calculate_stdev"><code class="name flex">
-<span>def <span class="ident">calculate_stdev</span></span>(<span>self, sample: bool = True) ‑> float</span>
+<dt id="grscheller_courses_distributions.distribution.Distribution.calculate_data_mean"><code class="name flex">
+<span>def <span class="ident">calculate_data_mean</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Set &amp; return a standard deviation calculated from the data set.</p>
+<div class="desc"><p>From the data set, calculate &amp; return the mean if it exists.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def calculate_data_mean(self) -&gt; float:
+    &#34;&#34;&#34;From the data set, calculate &amp; return the mean if it exists.&#34;&#34;&#34;
+    n = len(self.data)
+    if n &gt; 0:
+        self.mean = sum(self.data)/n
+    return self.mean</code></pre>
+</details>
+</dd>
+<dt id="grscheller_courses_distributions.distribution.Distribution.calculate_data_stdev"><code class="name flex">
+<span>def <span class="ident">calculate_data_stdev</span></span>(<span>self, sample: bool = False) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>From the data set, calculate &amp; return the stdev if it exists.</p>
 <ul>
-<li>If sample is True, calculate a sample standard deviation. </li>
+<li>If sample is True, calculate a sample standard deviation.</li>
 <li>If sample is False, calculate a population standard deviation.</li>
 </ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def calculate_stdev(self, sample: bool=True) -&gt; float:
-    &#34;&#34;&#34;Set &amp; return a standard deviation calculated from the data set.
+<pre><code class="python">def calculate_data_stdev(self, sample: bool=False) -&gt; float:
+    &#34;&#34;&#34;From the data set, calculate &amp; return the stdev if it exists.
 
-    * If sample is True, calculate a sample standard deviation. 
-    * If sample is False, calculate a population standard deviation. 
+    * If sample is True, calculate a sample standard deviation.
+    * If sample is False, calculate a population standard deviation.
 
     &#34;&#34;&#34;
-
+    # NOTE: Retaining sample parameter to keep consistent with course&#39;s API,
+    #       otherwise I don&#39;t need it and could do things more cleanly.
+    self.is_sample = sample
+    mu = self.calculate_data_mean()
     n = len(self.data)
-    mu = self.calculate_mean()
 
     if sample:
         # sample standard deviation
@@ -275,29 +322,40 @@ class Distribution():
 <span>def <span class="ident">read_data_file</span></span>(<span>self, file_name: str, sample: bool = True) ‑> None</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Method to read in data from a text file. The text file should have
-one number (float) per line. The numbers are stored in the data attribute.
-After reading in the file, the mean and standard deviation are calculated.</p></div>
+<div class="desc"><p>Method to read in data from a text file.</p>
+<p>The text file should have</p>
+<ul>
+<li>one number (float) per line</li>
+<li>the numbers are stored in the data attribute</li>
+<li>the mean attribute is then calculated from the data</li>
+<li>the standard deviation (population or sample) is calculated</li>
+</ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def read_data_file(self, file_name: str, sample: bool=True) -&gt; None:
-    &#34;&#34;&#34;Method to read in data from a text file. The text file should have
-    one number (float) per line. The numbers are stored in the data attribute.
-    After reading in the file, the mean and standard deviation are calculated.
+    &#34;&#34;&#34;Method to read in data from a text file.
+
+    The text file should have
+
+    * one number (float) per line
+    * the numbers are stored in the data attribute
+    * the mean attribute is then calculated from the data
+    * the standard deviation (population or sample) is calculated
     &#34;&#34;&#34;
+    self.is_sample = sample
 
     # Read in the data from the file given
-    data_list: List[float] = []
+    data_list: list[float] = []
     with open(file_name) as file:
         line = file.readline()
         while line:
-            data_list.append(int(line))
+            data_list.append(float(line))
             line = file.readline()
 
-    # Update Gaussian object
-    self.data = data_list</code></pre>
+    self.data = data_list
+    # self.calc_data_stats(sample)</code></pre>
 </details>
 </dd>
 </dl>
@@ -321,8 +379,11 @@ After reading in the file, the mean and standard deviation are calculated.</p></
 <li>
 <h4><code><a title="grscheller_courses_distributions.distribution.Distribution" href="#grscheller_courses_distributions.distribution.Distribution">Distribution</a></code></h4>
 <ul class="">
-<li><code><a title="grscheller_courses_distributions.distribution.Distribution.calculate_mean" href="#grscheller_courses_distributions.distribution.Distribution.calculate_mean">calculate_mean</a></code></li>
-<li><code><a title="grscheller_courses_distributions.distribution.Distribution.calculate_stdev" href="#grscheller_courses_distributions.distribution.Distribution.calculate_stdev">calculate_stdev</a></code></li>
+<li><code><a title="grscheller_courses_distributions.distribution.Distribution.calc_data_stats" href="#grscheller_courses_distributions.distribution.Distribution.calc_data_stats">calc_data_stats</a></code></li>
+<li><code><a title="grscheller_courses_distributions.distribution.Distribution.calculate_data_mean" href="#grscheller_courses_distributions.distribution.Distribution.calculate_data_mean">calculate_data_mean</a></code></li>
+<li><code><a title="grscheller_courses_distributions.distribution.Distribution.calculate_data_stdev" href="#grscheller_courses_distributions.distribution.Distribution.calculate_data_stdev">calculate_data_stdev</a></code></li>
+<li><code><a title="grscheller_courses_distributions.distribution.Distribution.data" href="#grscheller_courses_distributions.distribution.Distribution.data">data</a></code></li>
+<li><code><a title="grscheller_courses_distributions.distribution.Distribution.is_sample" href="#grscheller_courses_distributions.distribution.Distribution.is_sample">is_sample</a></code></li>
 <li><code><a title="grscheller_courses_distributions.distribution.Distribution.mean" href="#grscheller_courses_distributions.distribution.Distribution.mean">mean</a></code></li>
 <li><code><a title="grscheller_courses_distributions.distribution.Distribution.read_data_file" href="#grscheller_courses_distributions.distribution.Distribution.read_data_file">read_data_file</a></code></li>
 <li><code><a title="grscheller_courses_distributions.distribution.Distribution.stdev" href="#grscheller_courses_distributions.distribution.Distribution.stdev">stdev</a></code></li>

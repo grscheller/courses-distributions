@@ -50,14 +50,14 @@
 from __future__ import annotations
 
 from typing import List, Tuple
-import math
+from math import exp, pi, sqrt
 import matplotlib.pyplot as plt
 from .distribution import Distribution
 
 __all__ = [&#39;Gaussian&#39;]
 
 class Gaussian(Distribution):
-    &#34;&#34;&#34; Class for calculating and visualizing Gaussian distributions.
+    &#34;&#34;&#34; Class for visualizing data as Gaussian distributions.
 
     The Gaussian, also called Normal, distribution is a continuous probability
     distribution with probability density function
@@ -66,96 +66,51 @@ class Gaussian(Distribution):
     ```
     where
 
-    * μ = mean value of the distribution
-    * σ = standard deviation of the distribution
+    * μ = mu = mean value of the distribution
+    * σ = sigma = standard deviation of the distribution
 
-    Attributes:
-
-    * mu = μ = mean value (given or based on data)
-    * sigma = σ = standard deviation (given or based on data)
     &#34;&#34;&#34;
-
     def __init__(self, mu: float=0.0, sigma: float=1.0):
+        if sigma &lt;= 0:
+            msg = &#39;For a Gaussian distribution, sigma must be greater than 0&#39;
+            raise ValueError(msg)
+        # self.mu = mu       # Not using these, but conceptually
+        # self.sigma = sigma # similar to p and n for Binomial class.
         super().__init__(mu, sigma)
-        #: mean
-        self.mu = mu
-        self.sigma = sigma #: standard deviation
-        self._c = 1.0 / math.sqrt(2*math.pi)
 
     def calculate_mean(self) -&gt; float:
-        &#34;&#34;&#34;From the data set, calculate &amp; return the mean.&#34;&#34;&#34;
+        &#34;&#34;&#34;Calculate and set mean from the data set.&#34;&#34;&#34;
+        return self.calculate_data_mean()
 
-        mu = self.mean
-        n = len(self.data)
-        if n &gt; 0:
-            mu = sum(self.data)/n
-            self.mean = mu
-
-        return mu
-
-    def calculate_stdev(self, sample: bool=True) -&gt; float:
-        &#34;&#34;&#34;Set &amp; return a standard deviation calculated from the data set.
-
-        * If sample is True, calculate a sample standard deviation.
-        * If sample is False, calculate a population standard deviation.
-
-        &#34;&#34;&#34;
-
-        n = len(self.data)
-        mu = self.calculate_mean()
-
-        if sample:
-            # sample standard deviation
-            if n &gt; 1:
-                self.stdev = math.sqrt(sum(((x - mu)**2 for x in self.data))/(n-1))
-        else:
-            # population standard deviation
-            if n &gt; 0:
-                self.stdev = math.sqrt(sum(((x - mu)**2 for x in self.data))/n)
-
-        return self.stdev
+    def calculate_stdev(self, sample: bool = True) -&gt; float:
+        &#34;&#34;&#34;Calculate and set stdev (and mean) from the data set.&#34;&#34;&#34;
+        return self.calculate_data_stdev(sample)
 
     def read_data_file(self, file_name: str, sample: bool=True) -&gt; None:
-        &#34;&#34;&#34;Method to read in data from a text file. The text file should have
-        one number (float) per line. The numbers are stored in the data attribute.
-        After reading in the file, the mean and standard deviation are calculated.
+        &#34;&#34;&#34;Read data from a file, replace mean &amp; stdev statistics.
+
+        * if `sample` true (default), calculate a sample stdev
+        * if `sample` false, calculate calculate population stdev
         &#34;&#34;&#34;
-
-        # Read in the data from the file given
-        data_list: List[float] = []
-        with open(file_name) as file:
-            line = file.readline()
-            while line:
-                data_list.append(int(line))
-                line = file.readline()
-
-        # Update Gaussian object
-        self.data = data_list
-        self.calculate_stdev(sample)
+        super().read_data_file(file_name, sample)
 
     def plot_histogram(self) -&gt; None:
         &#34;&#34;&#34;Produce a histogram of the data using the matplotlib pyplot library.&#34;&#34;&#34;
-
         fig, axis = plt.subplots()
         axis.hist(self.data)
         axis.set_title(&#39;Histogram of Data&#39;)
-        axis.set_ylabel(&#39;Data&#39;)
+        axis.set_xlabel(&#39;Data&#39;)
         axis.set_ylabel(&#39;Count&#39;)
         plt.show()
 
-    def pdf(self, x: float):
-        &#34;&#34;&#34;Gaussian probability density function for this Gaussian object.&#34;&#34;&#34;
-
-        exp = math.exp
-        sqrt = math.sqrt
-        c = self._c
-
+    def pdf(self, x: float) -&gt; float:
+        &#34;&#34;&#34;Gaussian prob density function for this Gaussian object.&#34;&#34;&#34;
+        c = 1.0/sqrt(2*pi)
         mu = self.mean
         sigma = self.stdev
-
         return (c/sigma)*exp(-0.5*((x - mu)/sigma)**2)
 
-    def plot_histogram_pdf(self, n_spaces: int = 50) -&gt; Tuple[List[float], List[float]]:
+    def plot_histogram_pdf(self, n_spaces: int = 100) -&gt; Tuple[List[float], List[float]]:
         &#34;&#34;&#34;Method to plot the normalized histogram of the data and a plot of the
         probability density function along the same range
 
@@ -163,69 +118,42 @@ class Gaussian(Distribution):
             n_spaces (int): number of data points
 
         Returns:
-            list: x values for the pdf plot
-            list: y values for the pdf plot
-
+            list: x values used for the pdf plot
+            list: y values used for the pdf plot
         &#34;&#34;&#34;
+        data = self.data
+        pdf = self.pdf
 
-        min_xs = min(self.data)
-        max_xs = max(self.data)
+        if len(data) == 0:
+            return [], []
 
-        # calculates the interval between x values
-        interval = 1.0 * (max_xs - min_xs) / n_spaces
+        min_x, max_x = min(data), max(data)
+        if min_x == max_x:
+            min_x, max_x = min_x - 0.5, max_x + 0.5
+        interval = (max_x - min_x)/n_spaces
 
-        xs: List[float] = []
-        ys: List[float] = []
-
-        # calculate the x values to visualize
-        for i in range(n_spaces):
-            x = min_xs + interval*i
-            xs.append(x)
-            ys.append(self.pdf(x))
+        x: List[float] = list((min_x + interval*n for n in range(n_spaces + 1)))
+        y: List[float] = list((pdf(x) for x in x))
 
         # make the plots
         fig, axes = plt.subplots(2,sharex=True)
         fig.subplots_adjust(hspace=.5)
-        axes[0].hist(self.data, density=True)
+        axes[0].hist(data, density=True)
         axes[0].set_title(&#39;Normed Histogram of Data&#39;)
         axes[0].set_ylabel(&#39;Density&#39;)
 
-        axes[1].plot(xs, ys)
+        axes[1].plot(x, y)
         axes[1].set_title(&#39;Normal Distribution for \n Sample Mean and Sample Standard Deviation&#39;)
-        axes[0].set_ylabel(&#39;Density&#39;)
+        axes[1].set_ylabel(&#39;Density&#39;)
         plt.show()
 
-        return xs, ys
+        return x, y
 
     def __add__(self, other: Gaussian) -&gt; Gaussian:
-        &#34;&#34;&#34;Magic method to add together two Gaussian distributions
-
-        Args:
-            other (Gaussian): Gaussian instance
-
-        Returns:
-            Gaussian: Gaussian distribution
-
-        &#34;&#34;&#34;
-        # create a new Gaussian object
-        result = Gaussian()
-
-        # Calculate the mean and standard deviation of the sum of two Gaussians
-        result.mean = self.mean + other.mean
-        result.stdev = math.sqrt(self.stdev**2 + other.stdev**2)
-
-        return result
+        &#34;&#34;&#34;Add together two Gaussian distributions.&#34;&#34;&#34;
+        return Gaussian(self.mean + other.mean, sqrt(self.stdev**2 + other.stdev**2))
 
     def __repr__(self) -&gt; str:
-        &#34;&#34;&#34;Magic method to output the characteristics of the Gaussian instance
-
-        Args:
-            None
-
-        Returns:
-            string: characteristics of the Gaussian
-
-        &#34;&#34;&#34;
         repr_str = &#34;mean {}, standard deviation {}&#34;
         return repr_str.format(self.mean, self.stdev)</code></pre>
 </details>
@@ -244,27 +172,22 @@ class Gaussian(Distribution):
 <span>(</span><span>mu: float = 0.0, sigma: float = 1.0)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Class for calculating and visualizing Gaussian distributions.</p>
+<div class="desc"><p>Class for visualizing data as Gaussian distributions.</p>
 <p>The Gaussian, also called Normal, distribution is a continuous probability
 distribution with probability density function</p>
 <pre><code>   f(x) = (1/√(2πσ²))exp(-(x-μ)²/2σ²)
 </code></pre>
 <p>where</p>
 <ul>
-<li>μ = mean value of the distribution</li>
-<li>σ = standard deviation of the distribution</li>
-</ul>
-<p>Attributes:</p>
-<ul>
-<li>mu = μ = mean value (given or based on data)</li>
-<li>sigma = σ = standard deviation (given or based on data)</li>
+<li>μ = mu = mean value of the distribution</li>
+<li>σ = sigma = standard deviation of the distribution</li>
 </ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Gaussian(Distribution):
-    &#34;&#34;&#34; Class for calculating and visualizing Gaussian distributions.
+    &#34;&#34;&#34; Class for visualizing data as Gaussian distributions.
 
     The Gaussian, also called Normal, distribution is a continuous probability
     distribution with probability density function
@@ -273,96 +196,51 @@ distribution with probability density function</p>
     ```
     where
 
-    * μ = mean value of the distribution
-    * σ = standard deviation of the distribution
+    * μ = mu = mean value of the distribution
+    * σ = sigma = standard deviation of the distribution
 
-    Attributes:
-
-    * mu = μ = mean value (given or based on data)
-    * sigma = σ = standard deviation (given or based on data)
     &#34;&#34;&#34;
-
     def __init__(self, mu: float=0.0, sigma: float=1.0):
+        if sigma &lt;= 0:
+            msg = &#39;For a Gaussian distribution, sigma must be greater than 0&#39;
+            raise ValueError(msg)
+        # self.mu = mu       # Not using these, but conceptually
+        # self.sigma = sigma # similar to p and n for Binomial class.
         super().__init__(mu, sigma)
-        #: mean
-        self.mu = mu
-        self.sigma = sigma #: standard deviation
-        self._c = 1.0 / math.sqrt(2*math.pi)
 
     def calculate_mean(self) -&gt; float:
-        &#34;&#34;&#34;From the data set, calculate &amp; return the mean.&#34;&#34;&#34;
+        &#34;&#34;&#34;Calculate and set mean from the data set.&#34;&#34;&#34;
+        return self.calculate_data_mean()
 
-        mu = self.mean
-        n = len(self.data)
-        if n &gt; 0:
-            mu = sum(self.data)/n
-            self.mean = mu
-
-        return mu
-
-    def calculate_stdev(self, sample: bool=True) -&gt; float:
-        &#34;&#34;&#34;Set &amp; return a standard deviation calculated from the data set.
-
-        * If sample is True, calculate a sample standard deviation.
-        * If sample is False, calculate a population standard deviation.
-
-        &#34;&#34;&#34;
-
-        n = len(self.data)
-        mu = self.calculate_mean()
-
-        if sample:
-            # sample standard deviation
-            if n &gt; 1:
-                self.stdev = math.sqrt(sum(((x - mu)**2 for x in self.data))/(n-1))
-        else:
-            # population standard deviation
-            if n &gt; 0:
-                self.stdev = math.sqrt(sum(((x - mu)**2 for x in self.data))/n)
-
-        return self.stdev
+    def calculate_stdev(self, sample: bool = True) -&gt; float:
+        &#34;&#34;&#34;Calculate and set stdev (and mean) from the data set.&#34;&#34;&#34;
+        return self.calculate_data_stdev(sample)
 
     def read_data_file(self, file_name: str, sample: bool=True) -&gt; None:
-        &#34;&#34;&#34;Method to read in data from a text file. The text file should have
-        one number (float) per line. The numbers are stored in the data attribute.
-        After reading in the file, the mean and standard deviation are calculated.
+        &#34;&#34;&#34;Read data from a file, replace mean &amp; stdev statistics.
+
+        * if `sample` true (default), calculate a sample stdev
+        * if `sample` false, calculate calculate population stdev
         &#34;&#34;&#34;
-
-        # Read in the data from the file given
-        data_list: List[float] = []
-        with open(file_name) as file:
-            line = file.readline()
-            while line:
-                data_list.append(int(line))
-                line = file.readline()
-
-        # Update Gaussian object
-        self.data = data_list
-        self.calculate_stdev(sample)
+        super().read_data_file(file_name, sample)
 
     def plot_histogram(self) -&gt; None:
         &#34;&#34;&#34;Produce a histogram of the data using the matplotlib pyplot library.&#34;&#34;&#34;
-
         fig, axis = plt.subplots()
         axis.hist(self.data)
         axis.set_title(&#39;Histogram of Data&#39;)
-        axis.set_ylabel(&#39;Data&#39;)
+        axis.set_xlabel(&#39;Data&#39;)
         axis.set_ylabel(&#39;Count&#39;)
         plt.show()
 
-    def pdf(self, x: float):
-        &#34;&#34;&#34;Gaussian probability density function for this Gaussian object.&#34;&#34;&#34;
-
-        exp = math.exp
-        sqrt = math.sqrt
-        c = self._c
-
+    def pdf(self, x: float) -&gt; float:
+        &#34;&#34;&#34;Gaussian prob density function for this Gaussian object.&#34;&#34;&#34;
+        c = 1.0/sqrt(2*pi)
         mu = self.mean
         sigma = self.stdev
-
         return (c/sigma)*exp(-0.5*((x - mu)/sigma)**2)
 
-    def plot_histogram_pdf(self, n_spaces: int = 50) -&gt; Tuple[List[float], List[float]]:
+    def plot_histogram_pdf(self, n_spaces: int = 100) -&gt; Tuple[List[float], List[float]]:
         &#34;&#34;&#34;Method to plot the normalized histogram of the data and a plot of the
         probability density function along the same range
 
@@ -370,69 +248,42 @@ distribution with probability density function</p>
             n_spaces (int): number of data points
 
         Returns:
-            list: x values for the pdf plot
-            list: y values for the pdf plot
-
+            list: x values used for the pdf plot
+            list: y values used for the pdf plot
         &#34;&#34;&#34;
+        data = self.data
+        pdf = self.pdf
 
-        min_xs = min(self.data)
-        max_xs = max(self.data)
+        if len(data) == 0:
+            return [], []
 
-        # calculates the interval between x values
-        interval = 1.0 * (max_xs - min_xs) / n_spaces
+        min_x, max_x = min(data), max(data)
+        if min_x == max_x:
+            min_x, max_x = min_x - 0.5, max_x + 0.5
+        interval = (max_x - min_x)/n_spaces
 
-        xs: List[float] = []
-        ys: List[float] = []
-
-        # calculate the x values to visualize
-        for i in range(n_spaces):
-            x = min_xs + interval*i
-            xs.append(x)
-            ys.append(self.pdf(x))
+        x: List[float] = list((min_x + interval*n for n in range(n_spaces + 1)))
+        y: List[float] = list((pdf(x) for x in x))
 
         # make the plots
         fig, axes = plt.subplots(2,sharex=True)
         fig.subplots_adjust(hspace=.5)
-        axes[0].hist(self.data, density=True)
+        axes[0].hist(data, density=True)
         axes[0].set_title(&#39;Normed Histogram of Data&#39;)
         axes[0].set_ylabel(&#39;Density&#39;)
 
-        axes[1].plot(xs, ys)
+        axes[1].plot(x, y)
         axes[1].set_title(&#39;Normal Distribution for \n Sample Mean and Sample Standard Deviation&#39;)
-        axes[0].set_ylabel(&#39;Density&#39;)
+        axes[1].set_ylabel(&#39;Density&#39;)
         plt.show()
 
-        return xs, ys
+        return x, y
 
     def __add__(self, other: Gaussian) -&gt; Gaussian:
-        &#34;&#34;&#34;Magic method to add together two Gaussian distributions
-
-        Args:
-            other (Gaussian): Gaussian instance
-
-        Returns:
-            Gaussian: Gaussian distribution
-
-        &#34;&#34;&#34;
-        # create a new Gaussian object
-        result = Gaussian()
-
-        # Calculate the mean and standard deviation of the sum of two Gaussians
-        result.mean = self.mean + other.mean
-        result.stdev = math.sqrt(self.stdev**2 + other.stdev**2)
-
-        return result
+        &#34;&#34;&#34;Add together two Gaussian distributions.&#34;&#34;&#34;
+        return Gaussian(self.mean + other.mean, sqrt(self.stdev**2 + other.stdev**2))
 
     def __repr__(self) -&gt; str:
-        &#34;&#34;&#34;Magic method to output the characteristics of the Gaussian instance
-
-        Args:
-            None
-
-        Returns:
-            string: characteristics of the Gaussian
-
-        &#34;&#34;&#34;
         repr_str = &#34;mean {}, standard deviation {}&#34;
         return repr_str.format(self.mean, self.stdev)</code></pre>
 </details>
@@ -440,74 +291,50 @@ distribution with probability density function</p>
 <ul class="hlist">
 <li><a title="grscheller_courses_distributions.distribution.Distribution" href="distribution.html#grscheller_courses_distributions.distribution.Distribution">Distribution</a></li>
 </ul>
-<h3>Instance variables</h3>
-<dl>
-<dt id="grscheller_courses_distributions.gaussian.Gaussian.mu"><code class="name">var <span class="ident">mu</span></code></dt>
-<dd>
-<div class="desc"><p>mean</p></div>
-</dd>
-<dt id="grscheller_courses_distributions.gaussian.Gaussian.sigma"><code class="name">var <span class="ident">sigma</span></code></dt>
-<dd>
-<div class="desc"><p>standard deviation</p></div>
-</dd>
-</dl>
 <h3>Methods</h3>
 <dl>
+<dt id="grscheller_courses_distributions.gaussian.Gaussian.calculate_mean"><code class="name flex">
+<span>def <span class="ident">calculate_mean</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate and set mean from the data set.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def calculate_mean(self) -&gt; float:
+    &#34;&#34;&#34;Calculate and set mean from the data set.&#34;&#34;&#34;
+    return self.calculate_data_mean()</code></pre>
+</details>
+</dd>
 <dt id="grscheller_courses_distributions.gaussian.Gaussian.calculate_stdev"><code class="name flex">
 <span>def <span class="ident">calculate_stdev</span></span>(<span>self, sample: bool = True) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Set &amp; return a standard deviation calculated from the data set.</p>
-<ul>
-<li>If sample is True, calculate a sample standard deviation.</li>
-<li>If sample is False, calculate a population standard deviation.</li>
-</ul></div>
+<div class="desc"><p>Calculate and set stdev (and mean) from the data set.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def calculate_stdev(self, sample: bool=True) -&gt; float:
-    &#34;&#34;&#34;Set &amp; return a standard deviation calculated from the data set.
-
-    * If sample is True, calculate a sample standard deviation.
-    * If sample is False, calculate a population standard deviation.
-
-    &#34;&#34;&#34;
-
-    n = len(self.data)
-    mu = self.calculate_mean()
-
-    if sample:
-        # sample standard deviation
-        if n &gt; 1:
-            self.stdev = math.sqrt(sum(((x - mu)**2 for x in self.data))/(n-1))
-    else:
-        # population standard deviation
-        if n &gt; 0:
-            self.stdev = math.sqrt(sum(((x - mu)**2 for x in self.data))/n)
-
-    return self.stdev</code></pre>
+<pre><code class="python">def calculate_stdev(self, sample: bool = True) -&gt; float:
+    &#34;&#34;&#34;Calculate and set stdev (and mean) from the data set.&#34;&#34;&#34;
+    return self.calculate_data_stdev(sample)</code></pre>
 </details>
 </dd>
 <dt id="grscheller_courses_distributions.gaussian.Gaussian.pdf"><code class="name flex">
-<span>def <span class="ident">pdf</span></span>(<span>self, x: float)</span>
+<span>def <span class="ident">pdf</span></span>(<span>self, x: float) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Gaussian probability density function for this Gaussian object.</p></div>
+<div class="desc"><p>Gaussian prob density function for this Gaussian object.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def pdf(self, x: float):
-    &#34;&#34;&#34;Gaussian probability density function for this Gaussian object.&#34;&#34;&#34;
-
-    exp = math.exp
-    sqrt = math.sqrt
-    c = self._c
-
+<pre><code class="python">def pdf(self, x: float) -&gt; float:
+    &#34;&#34;&#34;Gaussian prob density function for this Gaussian object.&#34;&#34;&#34;
+    c = 1.0/sqrt(2*pi)
     mu = self.mean
     sigma = self.stdev
-
     return (c/sigma)*exp(-0.5*((x - mu)/sigma)**2)</code></pre>
 </details>
 </dd>
@@ -522,17 +349,16 @@ distribution with probability density function</p>
 </summary>
 <pre><code class="python">def plot_histogram(self) -&gt; None:
     &#34;&#34;&#34;Produce a histogram of the data using the matplotlib pyplot library.&#34;&#34;&#34;
-
     fig, axis = plt.subplots()
     axis.hist(self.data)
     axis.set_title(&#39;Histogram of Data&#39;)
-    axis.set_ylabel(&#39;Data&#39;)
+    axis.set_xlabel(&#39;Data&#39;)
     axis.set_ylabel(&#39;Count&#39;)
     plt.show()</code></pre>
 </details>
 </dd>
 <dt id="grscheller_courses_distributions.gaussian.Gaussian.plot_histogram_pdf"><code class="name flex">
-<span>def <span class="ident">plot_histogram_pdf</span></span>(<span>self, n_spaces: int = 50) ‑> Tuple[List[float], List[float]]</span>
+<span>def <span class="ident">plot_histogram_pdf</span></span>(<span>self, n_spaces: int = 100) ‑> Tuple[List[float], List[float]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Method to plot the normalized histogram of the data and a plot of the
@@ -545,15 +371,15 @@ probability density function along the same range</p>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>list</code></dt>
-<dd>x values for the pdf plot</dd>
+<dd>x values used for the pdf plot</dd>
 <dt><code>list</code></dt>
-<dd>y values for the pdf plot</dd>
+<dd>y values used for the pdf plot</dd>
 </dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def plot_histogram_pdf(self, n_spaces: int = 50) -&gt; Tuple[List[float], List[float]]:
+<pre><code class="python">def plot_histogram_pdf(self, n_spaces: int = 100) -&gt; Tuple[List[float], List[float]]:
     &#34;&#34;&#34;Method to plot the normalized histogram of the data and a plot of the
     probability density function along the same range
 
@@ -561,39 +387,58 @@ probability density function along the same range</p>
         n_spaces (int): number of data points
 
     Returns:
-        list: x values for the pdf plot
-        list: y values for the pdf plot
-
+        list: x values used for the pdf plot
+        list: y values used for the pdf plot
     &#34;&#34;&#34;
+    data = self.data
+    pdf = self.pdf
 
-    min_xs = min(self.data)
-    max_xs = max(self.data)
+    if len(data) == 0:
+        return [], []
 
-    # calculates the interval between x values
-    interval = 1.0 * (max_xs - min_xs) / n_spaces
+    min_x, max_x = min(data), max(data)
+    if min_x == max_x:
+        min_x, max_x = min_x - 0.5, max_x + 0.5
+    interval = (max_x - min_x)/n_spaces
 
-    xs: List[float] = []
-    ys: List[float] = []
-
-    # calculate the x values to visualize
-    for i in range(n_spaces):
-        x = min_xs + interval*i
-        xs.append(x)
-        ys.append(self.pdf(x))
+    x: List[float] = list((min_x + interval*n for n in range(n_spaces + 1)))
+    y: List[float] = list((pdf(x) for x in x))
 
     # make the plots
     fig, axes = plt.subplots(2,sharex=True)
     fig.subplots_adjust(hspace=.5)
-    axes[0].hist(self.data, density=True)
+    axes[0].hist(data, density=True)
     axes[0].set_title(&#39;Normed Histogram of Data&#39;)
     axes[0].set_ylabel(&#39;Density&#39;)
 
-    axes[1].plot(xs, ys)
+    axes[1].plot(x, y)
     axes[1].set_title(&#39;Normal Distribution for \n Sample Mean and Sample Standard Deviation&#39;)
-    axes[0].set_ylabel(&#39;Density&#39;)
+    axes[1].set_ylabel(&#39;Density&#39;)
     plt.show()
 
-    return xs, ys</code></pre>
+    return x, y</code></pre>
+</details>
+</dd>
+<dt id="grscheller_courses_distributions.gaussian.Gaussian.read_data_file"><code class="name flex">
+<span>def <span class="ident">read_data_file</span></span>(<span>self, file_name: str, sample: bool = True) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Read data from a file, replace mean &amp; stdev statistics.</p>
+<ul>
+<li>if <code>sample</code> true (default), calculate a sample stdev</li>
+<li>if <code>sample</code> false, calculate calculate population stdev</li>
+</ul></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_data_file(self, file_name: str, sample: bool=True) -&gt; None:
+    &#34;&#34;&#34;Read data from a file, replace mean &amp; stdev statistics.
+
+    * if `sample` true (default), calculate a sample stdev
+    * if `sample` false, calculate calculate population stdev
+    &#34;&#34;&#34;
+    super().read_data_file(file_name, sample)</code></pre>
 </details>
 </dd>
 </dl>
@@ -601,9 +446,12 @@ probability density function along the same range</p>
 <ul class="hlist">
 <li><code><b><a title="grscheller_courses_distributions.distribution.Distribution" href="distribution.html#grscheller_courses_distributions.distribution.Distribution">Distribution</a></b></code>:
 <ul class="hlist">
-<li><code><a title="grscheller_courses_distributions.distribution.Distribution.calculate_mean" href="distribution.html#grscheller_courses_distributions.distribution.Distribution.calculate_mean">calculate_mean</a></code></li>
+<li><code><a title="grscheller_courses_distributions.distribution.Distribution.calc_data_stats" href="distribution.html#grscheller_courses_distributions.distribution.Distribution.calc_data_stats">calc_data_stats</a></code></li>
+<li><code><a title="grscheller_courses_distributions.distribution.Distribution.calculate_data_mean" href="distribution.html#grscheller_courses_distributions.distribution.Distribution.calculate_data_mean">calculate_data_mean</a></code></li>
+<li><code><a title="grscheller_courses_distributions.distribution.Distribution.calculate_data_stdev" href="distribution.html#grscheller_courses_distributions.distribution.Distribution.calculate_data_stdev">calculate_data_stdev</a></code></li>
+<li><code><a title="grscheller_courses_distributions.distribution.Distribution.data" href="distribution.html#grscheller_courses_distributions.distribution.Distribution.data">data</a></code></li>
+<li><code><a title="grscheller_courses_distributions.distribution.Distribution.is_sample" href="distribution.html#grscheller_courses_distributions.distribution.Distribution.is_sample">is_sample</a></code></li>
 <li><code><a title="grscheller_courses_distributions.distribution.Distribution.mean" href="distribution.html#grscheller_courses_distributions.distribution.Distribution.mean">mean</a></code></li>
-<li><code><a title="grscheller_courses_distributions.distribution.Distribution.read_data_file" href="distribution.html#grscheller_courses_distributions.distribution.Distribution.read_data_file">read_data_file</a></code></li>
 <li><code><a title="grscheller_courses_distributions.distribution.Distribution.stdev" href="distribution.html#grscheller_courses_distributions.distribution.Distribution.stdev">stdev</a></code></li>
 </ul>
 </li>
@@ -628,12 +476,12 @@ probability density function along the same range</p>
 <li>
 <h4><code><a title="grscheller_courses_distributions.gaussian.Gaussian" href="#grscheller_courses_distributions.gaussian.Gaussian">Gaussian</a></code></h4>
 <ul class="two-column">
+<li><code><a title="grscheller_courses_distributions.gaussian.Gaussian.calculate_mean" href="#grscheller_courses_distributions.gaussian.Gaussian.calculate_mean">calculate_mean</a></code></li>
 <li><code><a title="grscheller_courses_distributions.gaussian.Gaussian.calculate_stdev" href="#grscheller_courses_distributions.gaussian.Gaussian.calculate_stdev">calculate_stdev</a></code></li>
-<li><code><a title="grscheller_courses_distributions.gaussian.Gaussian.mu" href="#grscheller_courses_distributions.gaussian.Gaussian.mu">mu</a></code></li>
 <li><code><a title="grscheller_courses_distributions.gaussian.Gaussian.pdf" href="#grscheller_courses_distributions.gaussian.Gaussian.pdf">pdf</a></code></li>
 <li><code><a title="grscheller_courses_distributions.gaussian.Gaussian.plot_histogram" href="#grscheller_courses_distributions.gaussian.Gaussian.plot_histogram">plot_histogram</a></code></li>
 <li><code><a title="grscheller_courses_distributions.gaussian.Gaussian.plot_histogram_pdf" href="#grscheller_courses_distributions.gaussian.Gaussian.plot_histogram_pdf">plot_histogram_pdf</a></code></li>
-<li><code><a title="grscheller_courses_distributions.gaussian.Gaussian.sigma" href="#grscheller_courses_distributions.gaussian.Gaussian.sigma">sigma</a></code></li>
+<li><code><a title="grscheller_courses_distributions.gaussian.Gaussian.read_data_file" href="#grscheller_courses_distributions.gaussian.Gaussian.read_data_file">read_data_file</a></code></li>
 </ul>
 </li>
 </ul>
