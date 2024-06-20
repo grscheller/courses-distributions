@@ -32,14 +32,19 @@ class Distribution():
         self.mean: float = mean      #: mean of the distribution
         self.stdev: float = stdev    #: standard deviation of the distribution``
         self.data: list[float] = []  #: data determining parameters of the distribution
-        self.sample = False          #: whether data is a sample or the entire population
+        self.is_sample = False       #: whether data is a sample or the entire population
 
     def read_data_file(self, file_name: str, sample: bool=True) -> None:
-        """Method to read in data from a text file. The text file should have
-        one number (float) per line. The numbers are stored in the data attribute.
-        After reading in the file, the mean and standard deviation are calculated.
+        """Method to read in data from a text file.
+
+        The text file should have
+
+        * one number (float) per line
+        * the numbers are stored in the data attribute
+        * the mean attribute is then calculated from the data
+        * the standard deviation (population or sample) is calculated
         """
-        self.sample = sample
+        self.is_sample = sample
 
         # Read in the data from the file given
         data_list: list[float] = []
@@ -50,13 +55,16 @@ class Distribution():
                 line = file.readline()
 
         self.data = data_list
-        self.calc_data_stats(sample)
+        # self.calc_data_stats(sample)
 
     def calc_data_stats(self, sample: bool) -> None:
-        """Calculate data statistics (mean/stdev for now)"""
-        self.sample = sample
+        """Calculate data statistics (mean/stdev for now)
+
+        Note: Not used for course
+        """
+        self.is_sample = sample
         self.calculate_data_stdev(sample)
-        # TODO: add other statistics? Maybe median, other moments?
+        # TODO: add other statistics? Maybe median, mode, other moments?
 
     def calculate_data_mean(self) -> float:
         """From the data set, calculate & return the mean if it exists."""
@@ -65,28 +73,26 @@ class Distribution():
             self.mean = sum(self.data)/n
         return self.mean
 
-    def calculate_data_stdev(self, sample: bool=True) -> float:
+    def calculate_data_stdev(self, sample: bool=False) -> float:
         """From the data set, calculate & return the stdev if it exists.
 
-        * If sample is True, calculate a sample standard deviation. 
-        * If sample is False, calculate a population standard deviation. 
+        * If sample is True, calculate a sample standard deviation.
+        * If sample is False, calculate a population standard deviation.
 
         """
         # NOTE: Retaining sample parameter to keep consistent with course's API,
         #       otherwise I don't need it and could do things more cleanly.
-        self.sample = sample
+        self.is_sample = sample
         mu = self.calculate_data_mean()
         n = len(self.data)
 
-        if self.sample:
+        if sample:
             # sample standard deviation
             if n > 1:
-                assert mu is not None
                 self.stdev = math.sqrt(sum(((x - mu)**2 for x in self.data))/(n-1))
         else:
             # population standard deviation
             if n > 0:
-                assert mu is not None
                 self.stdev = math.sqrt(sum(((x - mu)**2 for x in self.data))/n)
 
         return self.stdev

@@ -45,38 +45,40 @@ class Gaussian(Distribution):
         if sigma <= 0:
             msg = 'For a Gaussian distribution, sigma must be greater than 0'
             raise ValueError(msg)
+        # self.mu = mu       # Not using these, but conceptually
+        # self.sigma = sigma # similar to p and n for Binomial class.
         super().__init__(mu, sigma)
 
     def calculate_mean(self) -> float:
-        """Calculate the mean from the data set"""
+        """Calculate and set mean from the data set."""
         return self.calculate_data_mean()
 
     def calculate_stdev(self, sample: bool = True) -> float:
-        """Calculate the stdev from the data set"""
+        """Calculate and set stdev (and mean) from the data set."""
         return self.calculate_data_stdev(sample)
 
     def read_data_file(self, file_name: str, sample: bool=True) -> None:
+        """Read data from a file, replace mean & stdev statistics.
+
+        * if `sample` true (default), calculate a sample stdev
+        * if `sample` false, calculate calculate population stdev
+        """
         super().read_data_file(file_name, sample)
-        self.mu = self.mean
-        self.sigma = self.stdev
 
     def plot_histogram(self) -> None:
         """Produce a histogram of the data using the matplotlib pyplot library."""
-
         fig, axis = plt.subplots()
         axis.hist(self.data)
         axis.set_title('Histogram of Data')
-        axis.set_ylabel('Data')
+        axis.set_xlabel('Data')
         axis.set_ylabel('Count')
         plt.show()
 
     def pdf(self, x: float) -> float:
-        """Gaussian probability density function for this Gaussian object."""
+        """Gaussian prob density function for this Gaussian object."""
         c = 1.0/sqrt(2*pi)
-
         mu = self.mean
         sigma = self.stdev
-
         return (c/sigma)*exp(-0.5*((x - mu)/sigma)**2)
 
     def plot_histogram_pdf(self, n_spaces: int = 50) -> Tuple[List[float], List[float]]:
@@ -89,9 +91,7 @@ class Gaussian(Distribution):
         Returns:
             list: x values for the pdf plot
             list: y values for the pdf plot
-
         """
-
         min_xs = min(self.data)
         max_xs = max(self.data)
 
@@ -122,26 +122,9 @@ class Gaussian(Distribution):
         return xs, ys
 
     def __add__(self, other: Gaussian) -> Gaussian:
-        """D method to add together two Gaussian distributions
-
-        Args:
-            other (Gaussian): Gaussian instance
-
-        Returns:
-            Gaussian: Gaussian distribution
-
-        """
+        """Add together two Gaussian distributions."""
         return Gaussian(self.mean + other.mean, sqrt(self.stdev**2 + other.stdev**2))
 
     def __repr__(self) -> str:
-        """Magic method to output the characteristics of the Gaussian instance
-
-        Args:
-            None
-
-        Returns:
-            string: characteristics of the Gaussian
-
-        """
         repr_str = "mean {}, standard deviation {}"
         return repr_str.format(self.mean, self.stdev)

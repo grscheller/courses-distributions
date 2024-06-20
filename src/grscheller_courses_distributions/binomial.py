@@ -21,7 +21,7 @@
 from __future__ import annotations
 
 from typing import List, Tuple
-from math import ceil, floor, sqrt
+from math import ceil, comb, floor, pow, sqrt
 import matplotlib.pyplot as plt
 from .distribution import Distribution
 
@@ -46,8 +46,8 @@ class Binomial(Distribution):
             msg2 = msg3 = ''
             if not (0.0 <= p <= 1.0):
                 msg2 = '0 <= p <= 1'
-            if n < 1:
-                msg3 = 'the number of trials n must be at least 1'
+            if n < 0:
+                msg3 = 'the number of trials n must be non-negative'
             if msg2 and msg3:
                 msg = msg1 + msg2 + ' and ' + msg3 + '.'
             else:
@@ -72,142 +72,89 @@ class Binomial(Distribution):
         self.stdev = stdev = sqrt(n*p*(1-p))
         return stdev
 
+    def read_data_file(self, file_name: str, sample: bool=False) -> None:
+        """Read data from a file, DOES NOT UPDATE either `p` or `n`.
+
+        * the data is always treated as the population randomly selected from
+        * the sample parameter is ignored (it is there for LSP)
+        * the data is assumed to be one float per line
+        * each value either 0.0 or 1.0 (0 or 1 interpreted as floats)
+        """
+        super().read_data_file(file_name, False)
+
     def replace_stats_with_data(self) -> tuple[float, int]:
-        """Function to calculate p and n from the data set"""
-        if self.sample:
-            mean = self.mean
-            var = self.stdev ** 2
-            n_estimate = mean*mean/(mean - var)
-            n = int(n_estimate)
-            if n_estimate - n > 0.5:
-                n += 1
-            p = 1 - var/mean
-        else:
-            n = len(self.data)
-            p = sum(self.data)/n
+        """Function to calculate p and n from the read in data set.
+
+        Where the read in data set is taken as the population.
+        """
+        if self.data:
+            self.n = n = len(self.data)
+            self.p = p = sum(self.data)/n
             self.mean = n*p
             self.stdev = sqrt(n*p*(1-p))
-        return p, n
+        return self.p, self.n
 
-    def plot_bar(self):
-        """Function to output a histogram of the instance variable data using
-        matplotlib pyplot library.
+    def plot_bar(self) -> None:
+        """Produce a bar-graph of the data using the matplotlib pyplot library."""
+        fig, axis = plt.subplots()
+        axis.bar(self.data)
+        axis.set_title('Bar Graph of Data')
+        axis.set_xlabel('Data')
+        axis.set_ylabel('Count')
+        plt.show()
 
-        Args:
-            None
+    def pdf(self, kf: float) -> float:
+        """Binomial prob density function for this Binomial object."""
+        k = int(kf)
+        n = self.n
+        p = self.p
+        return comb(n, k)*(p**k)*(1 - p)**(n-k)
 
-        Returns:
-            None
-        """
-
-        # TODO: Use the matplotlib package to plot a bar chart of the data
-        #       The x-axis should have the value zero or one
-        #       The y-axis should have the count of results for each case
-        #
-        #       For example, say you have a coin where heads = 1 and tails = 0.
-        #       If you flipped a coin 35 times, and the coin landed on
-        #       heads 20 times and tails 15 times, the bar chart would have two bars:
-        #       0 on the x-axis and 15 on the y-axis
-        #       1 on the x-axis and 20 on the y-axis
-
-        #       Make sure to label the chart with a title, x-axis label and y-axis label
-        pass
-
-    def pdf(self, k):
-        """Probability density function calculator for the gaussian distribution.
-
-        Args:
-            k (float): point for calculating the probability density function
-
-
-        Returns:
-            float: probability density function output
-        """
-
-        # TODO: Calculate the probability density function for a binomial distribution
-        #  For a binomial distribution with n trials and probability p,
-        #  the probability density function calculates the likelihood of getting
-        #   k positive outcomes.
-        #
-        #   For example, if you flip a coin n = 60 times, with p = .5,
-        #   what's the likelihood that the coin lands on heads 40 out of 60 times?
-
-        pass
-
-    def plot_bar_pdf(self):
-
+    def plot_bar_pdf(self) -> Tuple[List[float], List[float]]:
         """Function to plot the pdf of the binomial distribution
 
-        Args:
-            None
-
         Returns:
-            list: x values for the pdf plot
-            list: y values for the pdf plot
-
+        * list: x values for the pdf plot
+        * list: y values for the pdf plot
         """
+        xs: List[float] = list(range(self.n + 1))
+        ys: List[float] = list((self.pdf(x) for x in xs))
 
-        # TODO: Use a bar chart to plot the probability density function from
-        # k = 0 to k = n
+        # make the plots
+        fig, axes = plt.subplots(2,sharex=True)
+        fig.subplots_adjust(hspace=.5)
+        axes[0].bar(self.data, density=True)
+        axes[0].set_title('Normed Histogram of Data')
+        axes[0].set_ylabel('Density')
 
-        #   Hint: You'll need to use the pdf() method defined above to calculate the
-        #   density function for every value of k.
+        axes[1].plot(xs, ys)
+        axes[1].set_title('Normal Distribution for \n Sample Mean and Sample Standard Deviation')
+        axes[0].set_ylabel('Density')
+        plt.show()
 
-        #   Be sure to label the bar chart with a title, x label and y label
+        return xs, ys
 
-        #   This method should also return the x and y values used to make the chart
-        #   The x and y values should be stored in separate lists
 
-    def __add__(self, other):
+    def __add__(self, other: Binomial) -> Binomial:
+        """Add together two Binomial distributions with equal p."""
+        if type(self) is not type(other):
+            msg = 'A binomial distribution cannot be added to a {}'
+            msg = msg.format(type(other))
+            raise TypeError(msg)
+        if self.p != other.p:
+            msg = 'p values are not equal'
+            raise ValueError(msg)
 
-        """Function to add together two Binomial distributions with equal p
+        return Binomial(self.p, self.n + other.n)
 
-        Args:
-            other (Binomial): Binomial instance
+    def __repr__(self) -> str:
+        """Output the characteristics of the Binomial instance.
 
-        Returns:
-            Binomial: Binomial distribution
-
+        Returns a string showing:
+        * mean
+        * standard deviation
+        * p
+        * n
         """
-
-        try:
-            assert self.p == other.p, 'p values are not equal'
-        except AssertionError as error:
-            raise
-
-        # TODO: Define addition for two binomial distributions. Assume that the
-        # p values of the two distributions are the same. The formula for
-        # summing two binomial distributions with different p values is more complicated,
-        # so you are only expected to implement the case for two distributions with equal p.
-
-        # the try, except statement above will raise an exception if the p values are not equal
-
-        # Hint: You need to instantiate a new binomial object with the correct n, p,
-        #   mean and standard deviation values. The __add__ method should return this
-        #   new binomial object.
-
-        #   When adding two binomial distributions, the p value remains the same
-        #   The new n value is the sum of the n values of the two distributions.
-
-        pass
-
-
-    def __repr__(self):
-
-        """Function to output the characteristics of the Binomial instance
-
-        Args:
-            None
-
-        Returns:
-            string: characteristics of the Gaussian
-
-        """
-
-        # TODO: Define the representation method so that the output looks like
-        #       mean 5, standard deviation 4.5, p .8, n 20
-        #
-        #       with the values replaced by whatever the actual distributions values are
-        #       The method should return a string in the expected format
-
-        pass
+        repr_str = 'mean {}, standard deviation {}, p {}, n {}'
+        return repr_str.format(self.mean, self.stdev, self.p, self.n)
