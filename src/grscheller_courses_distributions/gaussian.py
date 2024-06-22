@@ -65,7 +65,7 @@ class Gaussian(Distribution):
         """
         super().read_data_file(file_name, sample)
 
-    def plot_histogram(self) -> None:
+    def plot_histogram_data(self) -> None:
         """Produce a histogram of the data using the matplotlib pyplot library."""
         fig, axis = plt.subplots()
         axis.hist(self.data)
@@ -114,7 +114,8 @@ class Gaussian(Distribution):
         axes[0].set_ylabel('Density')
 
         axes[1].plot(x, y)
-        axes[1].set_title('Normal Distribution for \n Sample Mean and Sample Standard Deviation')
+        axes[1].set_title('Normal Distribution for the\n Sample Mean and Sample Standard Deviation')
+        axes[1].set_xlabel('sample mean = {}, sample stdev = {}'.format(self.mean, self.stdev))
         axes[1].set_ylabel('Density')
         plt.show()
 

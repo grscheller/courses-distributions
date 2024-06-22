@@ -94,13 +94,15 @@ class Binomial(Distribution):
             self.stdev = sqrt(n*p*(1-p))
         return self.p, self.n
 
-    def plot_histogram(self) -> None:
+    def plot_bar_data(self) -> None:
         """Produce a bar-graph of the data using the matplotlib pyplot library."""
-        fig, axis = plt.subplots()
-        axis.hist(self.data)
-        axis.set_title('Histogram of failures/successes')
-        axis.set_xlabel('Data')
-        axis.set_ylabel('Count')
+        n = self.n
+        p = self.p
+
+        plt.bar((0, 1), (n*(1-p), n*p), color ='maroon', width = 0.4)
+        plt.title('Failures and Successes for a sample of {}'.format(n))
+        plt.xlabel('prob = {}, n = {}'.format(p, n))
+        plt.ylabel('Sample Count')
         plt.show()
 
     def pdf(self, kf: float) -> float:
@@ -110,7 +112,7 @@ class Binomial(Distribution):
         p = self.p
         return comb(n, k)*(p**k)*(1 - p)**(n-k)
 
-    def plot_histogram_pdf(self) -> Tuple[List[float], List[float]]:
+    def plot_bar_pdf(self) -> Tuple[List[float], List[float]]:
         """Function to plot the pdf of the binomial distribution
 
         Returns:
@@ -123,17 +125,23 @@ class Binomial(Distribution):
         x: List[float] = list(range(self.n + 1))
         y: List[float] = list((pdf(x) for x in x))
 
+        plt.bar(x, y, color ='maroon', width = 0.4)
+        plt.title('Probability Density of Success')
+        plt.xlabel('Successes for {} trials'.format(self.n))
+        plt.ylabel('Density')
+        plt.show()
+
         # make the plots
         #fig, axes = plt.subplots(2,sharex=True)
-        fig, axes = plt.subplots(2)
-        fig.subplots_adjust(hspace=.5)
-        axes[0].hist(data, density=True)
-        axes[0].set_title('Normed Histogram of Data')
-        axes[0].set_ylabel('Density')
+        #fig, axes = plt.subplots(2)
+        #fig.subplots_adjust(hspace=.5)
+        #axes[0].hist(data, density=True)
+        #axes[0].set_title('Normed Histogram of Data')
+        #axes[0].set_ylabel('Density')
 
-        axes[1].plot(x, y)
-        axes[1].set_title('Binomial Distribution for p and n')
-        axes[1].set_ylabel('Density')
+        #axes[1].plot(x, y)
+        #axes[1].set_title('Binomial Distribution for p and n')
+        #axes[1].set_ylabel('Density')
         plt.show()
 
         return x, y
