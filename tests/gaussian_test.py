@@ -4,7 +4,7 @@ from grscheller_courses_distributions.gaussian import Gaussian
 
 class Test_Gaussian:
 
-    def test_initialization(self) -> None: 
+    def test_initialization(self) -> None:
         gauss1 = Gaussian(30, 3)
         gauss2 = Gaussian()
         assert gauss1.mean == 30
@@ -56,6 +56,6 @@ class Test_Gaussian:
         gaussian_one = Gaussian(25, 3)
         gaussian_two = Gaussian(30, 4)
         gaussian_sum = gaussian_one + gaussian_two
-        
+
         assert gaussian_sum.mean == 55.0
         assert gaussian_sum.stdev == 5.0

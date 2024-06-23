@@ -13,8 +13,9 @@
 # limitations under the License.
 
 """Module of classes representing various probability distributions
-   - distributions can be compared to either sample or population data
-   - derived from Udacity exercises
+
+   * distributions can be compared to either sample or population data
+   * derived from Udacity exercises
 """
 
 __version__ = "0.0.3"

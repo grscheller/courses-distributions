@@ -20,7 +20,6 @@
 
 from __future__ import annotations
 
-from typing import List, Tuple
 from math import exp, pi, sqrt
 import matplotlib.pyplot as plt
 from .distribution import Distribution
@@ -50,20 +49,12 @@ class Gaussian(Distribution):
         super().__init__(mu, sigma)
 
     def calculate_mean(self) -> float:
-        """Calculate and set mean from the data set."""
+        """Calculate, set and return the mean from the data set."""
         return self.calculate_data_mean()
 
     def calculate_stdev(self, sample: bool = True) -> float:
-        """Calculate and set stdev (and mean) from the data set."""
+        """Calculate, set and return the stdev from the data set."""
         return self.calculate_data_stdev(sample)
-
-    def read_data_file(self, file_name: str, sample: bool=True) -> None:
-        """Read data from a file, replace mean & stdev statistics.
-
-        * if `sample` true (default), calculate a sample stdev
-        * if `sample` false, calculate calculate population stdev
-        """
-        super().read_data_file(file_name, sample)
 
     def plot_histogram_data(self) -> None:
         """Produce a histogram of the data using the matplotlib pyplot library."""
@@ -81,12 +72,12 @@ class Gaussian(Distribution):
         sigma = self.stdev
         return (c/sigma)*exp(-0.5*((x - mu)/sigma)**2)
 
-    def plot_histogram_pdf(self, n_spaces: int = 100) -> Tuple[List[float], List[float]]:
+    def plot_histogram_pdf(self, n_spaces: int = 100) -> tuple[list[float], list[float]]:
         """Method to plot the normalized histogram of the data and a plot of the
         probability density function along the same range
 
         Args:
-            n_spaces (int): number of data points
+            n_spaces (int): number of data points to plot
 
         Returns:
             list: x values used for the pdf plot
@@ -103,8 +94,8 @@ class Gaussian(Distribution):
             min_x, max_x = min_x - 0.5, max_x + 0.5
         interval = (max_x - min_x)/n_spaces
 
-        x: List[float] = list((min_x + interval*n for n in range(n_spaces + 1)))
-        y: List[float] = list((pdf(x) for x in x))
+        x: list[float] = list((min_x + interval*n for n in range(n_spaces + 1)))
+        y: list[float] = list((pdf(x) for x in x))
 
         # make the plots
         fig, axes = plt.subplots(2,sharex=True)
@@ -123,6 +114,10 @@ class Gaussian(Distribution):
 
     def __add__(self, other: Gaussian) -> Gaussian:
         """Add together two Gaussian distributions."""
+        if type(other) is not Gaussian:
+            msg = 'A gaussian distribution cannot be added to a {}'
+            msg = msg.format(type(other))
+            raise TypeError(msg)
         return Gaussian(self.mean + other.mean, sqrt(self.stdev**2 + other.stdev**2))
 
     def __repr__(self) -> str:

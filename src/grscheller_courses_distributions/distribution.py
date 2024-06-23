@@ -41,7 +41,8 @@ class Distribution():
         * one number (float) per line
         * the numbers are stored in the data attribute
         * the mean attribute is then calculated from the data
-        * the standard deviation (population or sample) is calculated
+        * if `sample` true (default), calculate a sample stdev
+        * if `sample` false, calculate calculate population stdev
         """
         self.is_sample = sample
 
@@ -62,17 +63,17 @@ class Distribution():
         Note: Not used for course
         """
         self.is_sample = sample
-        self.calculate_data_stdev(sample)
+        self.calculate_stdev(sample)
         # TODO: add other statistics? Maybe median, mode, other moments?
 
-    def calculate_data_mean(self) -> float:
+    def calculate_mean(self) -> float:
         """From the data set, calculate & return the mean if it exists."""
         n = len(self.data)
         if n > 0:
             self.mean = sum(self.data)/n
         return self.mean
 
-    def calculate_data_stdev(self, sample: bool=False) -> float:
+    def calculate_stdev(self, sample: bool=False) -> float:
         """From the data set, calculate & return the stdev if it exists.
 
         * If sample is True, calculate a sample standard deviation.
@@ -82,7 +83,7 @@ class Distribution():
         # NOTE: Retaining sample parameter to keep consistent with course's API,
         #       otherwise I don't need it and could do things more cleanly.
         self.is_sample = sample
-        mu = self.calculate_data_mean()
+        mu = self.calculate_mean()
         n = len(self.data)
 
         if sample:

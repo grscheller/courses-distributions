@@ -20,7 +20,7 @@ class Test_Gaussian:
         gauss.read_data_file('data/numbers.txt')
         gauss.calculate_data_stdev(True)
         gauss.plot_histogram_data()
-        gauss.plot_histogram_pdf()
+        x_pdf, y_pdf = gauss.plot_histogram_pdf()
 
 class Test_Binomial:
 
@@ -29,4 +29,4 @@ class Test_Binomial:
         bernoulli.read_data_file('data/numbers_binomial.txt')
         bernoulli.replace_stats_with_data()
         bernoulli.plot_bar_data()
-        bernoulli.plot_bar_pdf()
+        x_pdf, y_pdf = bernoulli.plot_bar_pdf()

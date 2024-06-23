@@ -18,14 +18,19 @@ classifiers = [
 ]
 dependencies = []
 dynamic = ["version", "description"]
-keywords = [ "udacity", "ai", "probability", "distribution", "gaussian" ] 
+keywords = [
+    "udacity",
+    "probability",
+    "distribution",
+    "gaussian"
+]
 
 [project.optional-dependencies]
 test = ["pytest >=7.4"]
 
 [project.urls]
 Source = "https://github.com/grscheller/courses-distributions"
-Documentation = "https://github.com/grscheller/courses-distributions/html/gaussian.html"
+Documentation = "https://github.com/grscheller/courses-distributions"
 
 [tool.flit.sdist]
 exclude = [
