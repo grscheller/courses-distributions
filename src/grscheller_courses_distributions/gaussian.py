@@ -48,14 +48,6 @@ class Gaussian(Distribution):
         # self.sigma = sigma # similar to p and n for Binomial class.
         super().__init__(mu, sigma)
 
-    def calculate_mean(self) -> float:
-        """Calculate, set and return the mean from the data set."""
-        return self.calculate_data_mean()
-
-    def calculate_stdev(self, sample: bool = True) -> float:
-        """Calculate, set and return the stdev from the data set."""
-        return self.calculate_data_stdev(sample)
-
     def plot_histogram_data(self) -> None:
         """Produce a histogram of the data using the matplotlib pyplot library."""
         fig, axis = plt.subplots()

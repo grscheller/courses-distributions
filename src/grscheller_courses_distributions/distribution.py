@@ -73,7 +73,7 @@ class Distribution():
             self.mean = sum(self.data)/n
         return self.mean
 
-    def calculate_stdev(self, sample: bool=False) -> float:
+    def calculate_stdev(self, sample: bool=True) -> float:
         """From the data set, calculate & return the stdev if it exists.
 
         * If sample is True, calculate a sample standard deviation.

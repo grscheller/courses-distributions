@@ -18,7 +18,7 @@ class Test_Gaussian:
     def test_plot_data_pdf(self) -> None:
         gauss = Gaussian()
         gauss.read_data_file('data/numbers.txt')
-        gauss.calculate_data_stdev(True)
+        gauss.calculate_stdev(True)
         gauss.plot_histogram_data()
         x_pdf, y_pdf = gauss.plot_histogram_pdf()
 
