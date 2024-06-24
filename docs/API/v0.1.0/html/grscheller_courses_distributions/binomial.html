@@ -144,11 +144,11 @@ class Binomial(Distribution):
         return comb(n, k)*(p**k)*(1 - p)**(n-k)
 
     def plot_bar_pdf(self) -&gt; Tuple[List[int], List[float]]:
-        &#34;&#34;&#34;Function to plot the pdf of the binomial distribution
+        &#34;&#34;&#34;Function to plot the pdf of the binomial distribution.
 
         Returns:
-        * list: x values used for the pdf plot
-        * list: y values used for the pdf plot
+            list: x values used for the pdf plot
+            list: y values used for the pdf plot
         &#34;&#34;&#34;
         pdf: Callable[[int], float] = lambda ii: self.pdf(float(ii))
 
@@ -307,11 +307,11 @@ extracted from a data file (taken to be a population)</li>
         return comb(n, k)*(p**k)*(1 - p)**(n-k)
 
     def plot_bar_pdf(self) -&gt; Tuple[List[int], List[float]]:
-        &#34;&#34;&#34;Function to plot the pdf of the binomial distribution
+        &#34;&#34;&#34;Function to plot the pdf of the binomial distribution.
 
         Returns:
-        * list: x values used for the pdf plot
-        * list: y values used for the pdf plot
+            list: x values used for the pdf plot
+            list: y values used for the pdf plot
         &#34;&#34;&#34;
         pdf: Callable[[int], float] = lambda ii: self.pdf(float(ii))
 
@@ -445,20 +445,24 @@ extracted from a data file (taken to be a population)</li>
 <span>def <span class="ident">plot_bar_pdf</span></span>(<span>self) ‑> Tuple[List[int], List[float]]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Function to plot the pdf of the binomial distribution</p>
-<p>Returns:
-* list: x values used for the pdf plot
-* list: y values used for the pdf plot</p></div>
+<div class="desc"><p>Function to plot the pdf of the binomial distribution.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>list</code></dt>
+<dd>x values used for the pdf plot</dd>
+<dt><code>list</code></dt>
+<dd>y values used for the pdf plot</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def plot_bar_pdf(self) -&gt; Tuple[List[int], List[float]]:
-    &#34;&#34;&#34;Function to plot the pdf of the binomial distribution
+    &#34;&#34;&#34;Function to plot the pdf of the binomial distribution.
 
     Returns:
-    * list: x values used for the pdf plot
-    * list: y values used for the pdf plot
+        list: x values used for the pdf plot
+        list: y values used for the pdf plot
     &#34;&#34;&#34;
     pdf: Callable[[int], float] = lambda ii: self.pdf(float(ii))
 

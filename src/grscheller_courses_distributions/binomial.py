@@ -115,11 +115,11 @@ class Binomial(Distribution):
         return comb(n, k)*(p**k)*(1 - p)**(n-k)
 
     def plot_bar_pdf(self) -> Tuple[List[int], List[float]]:
-        """Function to plot the pdf of the binomial distribution
+        """Function to plot the pdf of the binomial distribution.
 
         Returns:
-        * list: x values used for the pdf plot
-        * list: y values used for the pdf plot
+            list: x values used for the pdf plot
+            list: y values used for the pdf plot
         """
         pdf: Callable[[int], float] = lambda ii: self.pdf(float(ii))
 
