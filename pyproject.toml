@@ -30,7 +30,7 @@ test = ["pytest >=7.4"]
 
 [project.urls]
 Source = "https://github.com/grscheller/courses-distributions"
-Documentation = "https://github.com/grscheller/courses-distributions"
+Documentation = "https://grscheller.github.io/courses-distributions"
 
 [tool.flit.sdist]
 exclude = [
